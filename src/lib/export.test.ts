@@ -47,23 +47,19 @@ describe('exportToCSV', () => {
 
     // Verify phrases CSV content
     const phrasesContent = readFileSync(result.phrasesPath, 'utf-8')
-    const phrasesLines = phrasesContent.split('\n')
-
-    expect(phrasesLines[0]).toBe(
-      'English Meaning,Kanji,Phonetic Kana,Phonetic Romaji,Kanji Breakdown'
-    )
-    expect(phrasesLines[1]).toBe('Exit,出口,でぐち,deguchi,出 = exit / 口 = mouth')
-    expect(phrasesLines[2]).toBe(
-      'Cash Only,現金のみ,げんきんのみ,genkin nomi,現金 = cash / のみ = only'
-    )
+    expect(phrasesContent).toMatchInlineSnapshot(`
+      "English Meaning,Kanji,Phonetic Kana,Phonetic Romaji,Kanji Breakdown
+      Exit,出口,でぐち,deguchi,出 = exit / 口 = mouth
+      Cash Only,現金のみ,げんきんのみ,genkin nomi,現金 = cash / のみ = only"
+    `)
 
     // Verify kanji CSV content
     const kanjiContent = readFileSync(result.kanjiPath, 'utf-8')
-    const kanjiLines = kanjiContent.split('\n')
-
-    expect(kanjiLines[0]).toBe('English Meaning,Kanji,Phonetic Kana,Phonetic Romaji')
-    expect(kanjiLines[1]).toBe('exit,出,で,de')
-    expect(kanjiLines[2]).toBe('"mouth, opening",口,くち,kuchi')
+    expect(kanjiContent).toMatchInlineSnapshot(`
+      "English Meaning,Kanji,Phonetic Kana,Phonetic Romaji
+      exit,出,で,de
+      "mouth, opening",口,くち,kuchi"
+    `)
   })
 
   it('handles CSV escaping correctly', async () => {
@@ -82,11 +78,11 @@ describe('exportToCSV', () => {
 
     const result = await exportToCSV(cardData)
     const phrasesContent = readFileSync(result.phrasesPath, 'utf-8')
-    const phrasesLines = phrasesContent.split('\n')
 
-    expect(phrasesLines[1]).toBe(
-      '"Test ""quoted"" text",漢字,かんじ,kanji,"Contains, comma and ""quotes"""'
-    )
+    expect(phrasesContent).toMatchInlineSnapshot(`
+      "English Meaning,Kanji,Phonetic Kana,Phonetic Romaji,Kanji Breakdown
+      "Test ""quoted"" text",漢字,かんじ,kanji,"Contains, comma and ""quotes""""
+    `)
   })
 
   it('handles empty data', async () => {
@@ -99,11 +95,31 @@ describe('exportToCSV', () => {
 
     // Should still create files with just headers
     const phrasesContent = readFileSync(result.phrasesPath, 'utf-8')
-    expect(phrasesContent).toBe(
-      'English Meaning,Kanji,Phonetic Kana,Phonetic Romaji,Kanji Breakdown'
+    expect(phrasesContent).toMatchInlineSnapshot(
+      `"English Meaning,Kanji,Phonetic Kana,Phonetic Romaji,Kanji Breakdown"`
     )
 
     const kanjiContent = readFileSync(result.kanjiPath, 'utf-8')
-    expect(kanjiContent).toBe('English Meaning,Kanji,Phonetic Kana,Phonetic Romaji')
+    expect(kanjiContent).toMatchInlineSnapshot(
+      `"English Meaning,Kanji,Phonetic Kana,Phonetic Romaji"`
+    )
+  })
+
+  it('supports auto-open parameter', async () => {
+    const cardData: CardData = {
+      phrases: [],
+      kanji: [],
+    }
+
+    // Test that autoOpen parameter is accepted (actual file opening behavior
+    // is platform-dependent and hard to test reliably)
+    const result = await exportToCSV(cardData, false)
+    expect(result.phrasesPath).toBeTruthy()
+    expect(result.kanjiPath).toBeTruthy()
+
+    // Should not throw when autoOpen is true, even if opening fails
+    const resultWithAutoOpen = await exportToCSV(cardData, true)
+    expect(resultWithAutoOpen.phrasesPath).toBeTruthy()
+    expect(resultWithAutoOpen.kanjiPath).toBeTruthy()
   })
 })

@@ -27,28 +27,28 @@
   - [x] Parse 2+ character phrases into Phrases table
   - [x] Extract individual kanji from breakdown columns
   - [x] Deduplicate existing kanji
-  - [ ] Query LLM for individual kanji meanings
 - [x] Create card generation logic
 - [x] Implement CSV export functionality
 - [x] Add tests
 
-## Phase 6: Output and Formatting
+## Phase 4: Output and Formatting
 
-- [ ] Implement console-table-printer for terminal display
-- [ ] Create separate CSV exports for phrases and individual kanji
-- [ ] Integrate `open` package to auto-open CSV files
-- [ ] Add proper logging with LOG_LEVEL support
-- [ ] Add tests
+- [x] Implement console-table-printer for terminal display
+- [x] Create separate CSV exports for phrases and individual kanji
+- [x] Integrate `open` package to auto-open CSV files
+- [x] Add proper logging with LOG_LEVEL support
+- [x] Add tests
 
-## Phase 4: LLM Integration
+## Phase 5: LLM Integration
 
 - [ ] Integrate any-llm library
 - [ ] Create prompt templates in `resources/prompts/`
 - [ ] Implement LLM query functions for phrases and individual kanji
 - [ ] Add structured data parsing from LLM responses
+- [ ] Update Phase 3: Query LLM for individual kanji meanings
 - [ ] Add tests
 
-## Phase 5: CLI Commands
+## Phase 6: CLI Commands
 
 - [ ] Implement `cards` command
   - [ ] Accept count and domain parameters

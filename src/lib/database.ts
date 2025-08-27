@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import type { Kanji, Phrase, Query } from '../generated/prisma'
 import { PrismaClient } from '../generated/prisma'
 import { getTestPrismaClient } from '../test-database'
+import { log } from './logger'
 
 export type QueryWithCards = Query & {
   phrases: Phrase[]
@@ -175,8 +176,10 @@ export async function deleteQuery(id: number): Promise<void> {
 /** Initialize the database and run auto-migrations */
 export async function initializeDatabase(): Promise<void> {
   try {
+    log.info('Initializing database connection')
     const client = getPrismaClient()
     await client.$connect()
+    log.info('Database connected successfully')
 
     // Deploy pending migrations in production/development
     const { spawn } = await import('node:child_process')
@@ -190,14 +193,16 @@ export async function initializeDatabase(): Promise<void> {
 
       child.on('close', (code) => {
         if (code === 0) {
+          log.info('Database schema migration completed successfully')
           resolve()
         } else {
+          log.error(`Migration failed with code ${code}`)
           reject(new Error(`Migration failed with code ${code}`))
         }
       })
     })
   } catch (error) {
-    console.error('Database initialization failed:', error)
+    log.error({ error }, 'Database initialization failed')
     throw error
   }
 }
