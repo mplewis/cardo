@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { truncateDatabase } from '../test-utils'
 import {
-  createQuery,
-  getQueryWithCards,
+  createKanji,
   createPhrase,
   createPhrases,
-  createKanji,
-  kanjiExists,
-  getExistingKanji,
+  createQuery,
   deleteQuery,
+  getExistingKanji,
+  getQueryWithCards,
+  kanjiExists,
 } from './database'
 
 afterEach(async () => {

@@ -11,116 +11,116 @@ const { getExistingKanji } = await import('./database')
 const mockGetExistingKanji = vi.mocked(getExistingKanji)
 
 describe('consolidate', () => {
-    it('separates phrases from individual kanji', async () => {
-      mockGetExistingKanji.mockResolvedValue([])
+  it('separates phrases from individual kanji', async () => {
+    mockGetExistingKanji.mockResolvedValue([])
 
-      const rawData: RawLlmResponse[] = [
-        {
-          kanji: '出口',
-          englishMeaning: 'Exit',
-          phoneticKana: 'でぐち',
-          phoneticRomaji: 'deguchi',
-          kanjiBreakdown: '出 = exit / 口 = mouth',
-        },
-        {
-          kanji: '出',
-          englishMeaning: 'exit',
-          phoneticKana: 'で',
-          phoneticRomaji: 'de',
-          kanjiBreakdown: '',
-        },
-      ]
-
-      const result = await consolidate(rawData)
-
-      expect(result.phrases).toHaveLength(1)
-      expect(result.phrases[0]).toMatchObject({
+    const rawData: RawLlmResponse[] = [
+      {
         kanji: '出口',
         englishMeaning: 'Exit',
-      })
-
-      expect(result.kanji).toHaveLength(1)
-      expect(result.kanji[0]).toMatchObject({
+        phoneticKana: 'でぐち',
+        phoneticRomaji: 'deguchi',
+        kanjiBreakdown: '出 = exit / 口 = mouth',
+      },
+      {
         kanji: '出',
         englishMeaning: 'exit',
-      })
+        phoneticKana: 'で',
+        phoneticRomaji: 'de',
+        kanjiBreakdown: '',
+      },
+    ]
+
+    const result = await consolidate(rawData)
+
+    expect(result.phrases).toHaveLength(1)
+    expect(result.phrases[0]).toMatchObject({
+      kanji: '出口',
+      englishMeaning: 'Exit',
     })
 
-    it('extracts kanji from phrase breakdowns', async () => {
-      mockGetExistingKanji.mockResolvedValue([])
-
-      const rawData: RawLlmResponse[] = [
-        {
-          kanji: '現金のみ',
-          englishMeaning: 'Cash Only',
-          phoneticKana: 'げんきんのみ',
-          phoneticRomaji: 'genkin nomi',
-          kanjiBreakdown: '現金 = cash / のみ = only',
-        },
-      ]
-
-      const result = await consolidate(rawData)
-
-      expect(result.phrases).toHaveLength(1)
-      // Should extract 現 and 金 from the breakdown
-      expect(mockGetExistingKanji).toHaveBeenCalledWith(['現', '金'])
+    expect(result.kanji).toHaveLength(1)
+    expect(result.kanji[0]).toMatchObject({
+      kanji: '出',
+      englishMeaning: 'exit',
     })
+  })
 
-    it('deduplicates against existing kanji', async () => {
-      mockGetExistingKanji.mockResolvedValue(['出'])
+  it('extracts kanji from phrase breakdowns', async () => {
+    mockGetExistingKanji.mockResolvedValue([])
 
-      const rawData: RawLlmResponse[] = [
-        {
-          kanji: '出口',
-          englishMeaning: 'Exit',
-          phoneticKana: 'でぐち',
-          phoneticRomaji: 'deguchi',
-          kanjiBreakdown: '出 = exit / 口 = mouth',
-        },
-      ]
+    const rawData: RawLlmResponse[] = [
+      {
+        kanji: '現金のみ',
+        englishMeaning: 'Cash Only',
+        phoneticKana: 'げんきんのみ',
+        phoneticRomaji: 'genkin nomi',
+        kanjiBreakdown: '現金 = cash / のみ = only',
+      },
+    ]
 
-      const result = await consolidate(rawData)
+    const result = await consolidate(rawData)
 
-      // Should not include 出 since it already exists
-      // But should want to include 口 since it's new
-      expect(result.kanji).toHaveLength(0)
-    })
+    expect(result.phrases).toHaveLength(1)
+    // Should extract 現 and 金 from the breakdown
+    expect(mockGetExistingKanji).toHaveBeenCalledWith(['現', '金'])
+  })
 
-    it('handles kata only breakdowns', async () => {
-      mockGetExistingKanji.mockResolvedValue([])
+  it('deduplicates against existing kanji', async () => {
+    mockGetExistingKanji.mockResolvedValue(['出'])
 
-      const rawData: RawLlmResponse[] = [
-        {
-          kanji: 'ひらがな',
-          englishMeaning: 'Hiragana',
-          phoneticKana: 'ひらがな',
-          phoneticRomaji: 'hiragana',
-          kanjiBreakdown: 'kata only',
-        },
-      ]
+    const rawData: RawLlmResponse[] = [
+      {
+        kanji: '出口',
+        englishMeaning: 'Exit',
+        phoneticKana: 'でぐち',
+        phoneticRomaji: 'deguchi',
+        kanjiBreakdown: '出 = exit / 口 = mouth',
+      },
+    ]
 
-      const result = await consolidate(rawData)
+    const result = await consolidate(rawData)
 
-      expect(result.phrases).toHaveLength(1)
-      expect(mockGetExistingKanji).toHaveBeenCalledWith([])
-    })
+    // Should not include 出 since it already exists
+    // But should want to include 口 since it's new
+    expect(result.kanji).toHaveLength(0)
+  })
 
-    it('handles complex breakdown formats', async () => {
-      mockGetExistingKanji.mockResolvedValue([])
+  it('handles kata only breakdowns', async () => {
+    mockGetExistingKanji.mockResolvedValue([])
 
-      const rawData: RawLlmResponse[] = [
-        {
-          kanji: '薬局',
-          englishMeaning: 'Pharmacy',
-          phoneticKana: 'やっきょく',
-          phoneticRomaji: 'yakkyoku',
-          kanjiBreakdown: '薬 = medicine / 局 = office',
-        },
-      ]
+    const rawData: RawLlmResponse[] = [
+      {
+        kanji: 'ひらがな',
+        englishMeaning: 'Hiragana',
+        phoneticKana: 'ひらがな',
+        phoneticRomaji: 'hiragana',
+        kanjiBreakdown: 'kata only',
+      },
+    ]
 
-      const result = await consolidate(rawData)
+    const result = await consolidate(rawData)
 
-      expect(result.phrases).toHaveLength(1)
-      expect(mockGetExistingKanji).toHaveBeenCalledWith(['薬', '局'])
-    })
+    expect(result.phrases).toHaveLength(1)
+    expect(mockGetExistingKanji).toHaveBeenCalledWith([])
+  })
+
+  it('handles complex breakdown formats', async () => {
+    mockGetExistingKanji.mockResolvedValue([])
+
+    const rawData: RawLlmResponse[] = [
+      {
+        kanji: '薬局',
+        englishMeaning: 'Pharmacy',
+        phoneticKana: 'やっきょく',
+        phoneticRomaji: 'yakkyoku',
+        kanjiBreakdown: '薬 = medicine / 局 = office',
+      },
+    ]
+
+    const result = await consolidate(rawData)
+
+    expect(result.phrases).toHaveLength(1)
+    expect(mockGetExistingKanji).toHaveBeenCalledWith(['薬', '局'])
+  })
 })

@@ -5,6 +5,11 @@ import type { Kanji, Phrase, Query } from '../generated/prisma'
 import { PrismaClient } from '../generated/prisma'
 import { getTestPrismaClient } from '../test-database'
 
+export type QueryWithCards = Query & {
+  phrases: Phrase[]
+  kanji: Kanji[]
+}
+
 /** Get the database file path in the system's app data folder */
 function getDatabasePath(): string {
   const appDataDir = join(homedir(), '.local', 'share', 'cardo')
@@ -72,7 +77,7 @@ export async function createQuery(data: CreateQueryData): Promise<Query> {
   })
 }
 /** Get a query by ID with all related data */
-export async function getQueryWithCards(id: number): Promise<Query | null> {
+export async function getQueryWithCards(id: number): Promise<QueryWithCards | null> {
   return await getPrismaClient().query.findUnique({
     where: { id },
     include: {

@@ -1,5 +1,11 @@
-import { createPhrases, createKanjis, getQueryWithCards, getAllPhrases, getAllKanji } from './database'
 import { consolidate, type RawLlmResponse } from './consolidation'
+import {
+  createKanjis,
+  createPhrases,
+  getAllKanji,
+  getAllPhrases,
+  getQueryWithCards,
+} from './database'
 
 export interface CardData {
   phrases: Array<{
@@ -98,10 +104,7 @@ export async function getCardsForQuery(queryId: number): Promise<CardData> {
 
 /** Get all cards across all queries */
 export async function getAllCards(): Promise<CardData> {
-  const [phrases, kanji] = await Promise.all([
-    getAllPhrases(),
-    getAllKanji(),
-  ])
+  const [phrases, kanji] = await Promise.all([getAllPhrases(), getAllKanji()])
 
   return {
     phrases: phrases.map((p) => ({

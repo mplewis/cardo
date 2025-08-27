@@ -9,7 +9,7 @@ export async function truncateDatabase(): Promise<void> {
     await testPrisma.$executeRaw`DELETE FROM Phrase`
     await testPrisma.$executeRaw`DELETE FROM Query`
     await testPrisma.$executeRaw`DELETE FROM sqlite_sequence WHERE name IN ('Query', 'Phrase', 'Kanji')`
-  } catch (error) {
+  } catch (_error) {
     // Tables might not exist yet during setup, silently ignore
   }
 }

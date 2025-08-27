@@ -33,9 +33,7 @@ export interface ConsolidationResult {
  * 3. Deduplicate against existing kanji in database
  * 4. Return structured data for further processing
  */
-export async function consolidate(
-  rawData: RawLlmResponse[]
-): Promise<ConsolidationResult> {
+export async function consolidate(rawData: RawLlmResponse[]): Promise<ConsolidationResult> {
   const phrases: ConsolidationResult['phrases'] = []
   const kanjiSet = new Set<string>()
   const kanjiData = new Map<string, { meaning: string; kana: string; romaji: string }>()
@@ -116,9 +114,11 @@ function extractKanjiFromBreakdown(breakdown: string): string[] {
     if (match) {
       const kanjiChars = match[1]
       // Add each individual character
-      for (const char of kanjiChars) {
-        if (isKanji(char)) {
-          kanji.push(char)
+      if (kanjiChars) {
+        for (const char of kanjiChars) {
+          if (isKanji(char)) {
+            kanji.push(char)
+          }
         }
       }
     }

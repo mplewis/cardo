@@ -10,7 +10,9 @@
       "Bash(pnpm remove:*)",
       "Bash(DATABASE_URL=\"file:./tmp/test.db\" pnpm prisma db push)",
       "Bash(sqlite3:*)",
-      "Bash(pnpm vitest run:*)"
+      "Bash(pnpm vitest run:*)",
+      "Bash(act:*)",
+      "Bash(pnpm typecheck:*)"
     ],
     "deny": [],
     "ask": []
