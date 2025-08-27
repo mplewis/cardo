@@ -1,24 +1,12 @@
+import { prisma as prodPrisma } from '../database'
 import type { IndividualKanji, Phrase, Query } from '../generated/prisma'
-import { PrismaClient } from '../generated/prisma'
+import { getTestPrismaClient } from '../test-database'
 
-// Use test database in test environment
-function createPrismaClient(): PrismaClient {
-  if (process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test.db')) {
-    return new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL || 'file:./tmp/test.db',
-        },
-      },
-    })
-  }
-
-  // Use production database client
-  const { prisma: prodPrisma } = require('../database')
-  return prodPrisma
-}
-
-const prisma = createPrismaClient()
+// Use shared test database client in test environment, otherwise use production client
+const prisma =
+  process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test.db')
+    ? getTestPrismaClient()
+    : prodPrisma
 
 export interface CreateQueryData {
   prompt: string
@@ -146,7 +134,7 @@ export class DatabaseService {
         kanji: true,
       },
     })
-    return existing.map((k) => k.kanji)
+    return existing.map((k: { kanji: string }) => k.kanji)
   }
 
   /** Delete a query and all associated cards */

@@ -1,19 +1,8 @@
-import { PrismaClient } from './generated/prisma'
-
-/** Create a test database client */
-function createTestPrismaClient(): PrismaClient {
-  return new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL || 'file:./tmp/test.db',
-      },
-    },
-  })
-}
+import { getTestPrismaClient } from './test-database'
 
 /** Truncate all test database tables and reset auto-increment counters */
 export async function truncateDatabase(): Promise<void> {
-  const testPrisma = createTestPrismaClient()
+  const testPrisma = getTestPrismaClient()
 
   try {
     await testPrisma.$executeRaw`DELETE FROM IndividualKanji`
@@ -23,7 +12,5 @@ export async function truncateDatabase(): Promise<void> {
   } catch (error) {
     // Tables might not exist yet during setup, ignore error
     console.warn('Truncate failed (expected during setup):', error)
-  } finally {
-    await testPrisma.$disconnect()
   }
 }

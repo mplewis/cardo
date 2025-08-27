@@ -23,14 +23,14 @@
 
 ## Phase 3: Core Business Logic
 
-- [ ] Implement auto-consolidation logic
-  - [ ] Parse 2+ character phrases into Phrases table
-  - [ ] Extract individual kanji from breakdown columns
-  - [ ] Deduplicate existing kanji
+- [x] Implement auto-consolidation logic
+  - [x] Parse 2+ character phrases into Phrases table
+  - [x] Extract individual kanji from breakdown columns
+  - [x] Deduplicate existing kanji
   - [ ] Query LLM for individual kanji meanings
-- [ ] Create card generation logic
-- [ ] Implement CSV export functionality
-- [ ] Add tests
+- [x] Create card generation logic
+- [x] Implement CSV export functionality
+- [x] Add tests
 
 ## Phase 6: Output and Formatting
 
