@@ -2,15 +2,15 @@
 
 ## Phase 1: Project Setup
 
-- [ ] Initialize pnpm project with TypeScript
-- [ ] Set up oclif CLI framework
-- [ ] Configure TypeScript with strict settings
-- [ ] Set up Biome for linting/formatting
-- [ ] Configure Prettier and EditorConfig
-- [ ] Set up Vitest for testing
-- [ ] Set up dotenv for config
-- [ ] Configure pino logging with pino-pretty
-- [ ] Add tests
+- [x] Initialize pnpm project with TypeScript
+- [x] Set up oclif CLI framework
+- [x] Configure TypeScript with strict settings
+- [x] Set up Biome for linting/formatting
+- [x] Configure Prettier and EditorConfig
+- [x] Set up Vitest for testing
+- [x] Set up dotenv for config
+- [x] Configure pino logging with pino-pretty
+- [x] Add tests
 
 ## Phase 2: Database Layer
 
