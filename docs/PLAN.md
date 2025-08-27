@@ -14,12 +14,12 @@
 
 ## Phase 2: Database Layer
 
-- [ ] Set up Prisma ORM
-- [ ] Create database schema for queries, phrases, and individual kanji
-- [ ] Configure SQLite database in system app data folder
-- [ ] Implement auto-migration
-- [ ] Create basic CRUD operations
-- [ ] Add tests
+- [x] Set up Prisma ORM
+- [x] Create database schema for queries, phrases, and individual kanji
+- [x] Configure SQLite database in system app data folder
+- [x] Implement auto-migration
+- [x] Create basic CRUD operations
+- [x] Add tests
 
 ## Phase 3: Core Business Logic
 

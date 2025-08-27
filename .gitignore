@@ -53,3 +53,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Generated files
+src/generated/
+/src/generated/prisma

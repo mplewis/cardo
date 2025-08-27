@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Query {
+  id          Int      @id @default(autoincrement())
+  prompt      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  phrases     Phrase[]
+  individualKanji IndividualKanji[]
+}
+
+model Phrase {
+  id              Int    @id @default(autoincrement())
+  englishMeaning  String
+  kanji           String
+  phoneticKana    String
+  phoneticRomaji  String
+  kanjiBreakdown  String
+  queryId         Int
+  query           Query  @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  
+  @@unique([kanji, queryId])
+}
+
+model IndividualKanji {
+  id              Int    @id @default(autoincrement())
+  englishMeaning  String
+  kanji           String @unique
+  phoneticKana    String
+  phoneticRomaji  String
+  queryId         Int
+  query           Query  @relation(fields: [queryId], references: [id], onDelete: Cascade)
+}
