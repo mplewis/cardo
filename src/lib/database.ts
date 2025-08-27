@@ -15,24 +15,34 @@ function getDatabasePath(): string {
 /** Create and configure the Prisma client with the correct database path */
 function createPrismaClient(): PrismaClient {
   const databasePath = getDatabasePath()
-  process.env.DATABASE_URL = `file:${databasePath}`
+  // Only set DATABASE_URL if it's not already set (preserves test environment settings)
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = `file:${databasePath}`
+  }
 
   return new PrismaClient({
     datasources: {
       db: {
-        url: `file:${databasePath}`,
+        url: process.env.DATABASE_URL || `file:${databasePath}`,
       },
     },
   })
 }
 
-const prodPrisma = createPrismaClient()
+let prodPrisma: PrismaClient | null = null
 
 // Use shared test database client in test environment, otherwise use production client
-const prisma =
-  process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test.db')
-    ? getTestPrismaClient()
-    : prodPrisma
+function getPrismaClient(): PrismaClient {
+  const isTest = process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test.db')
+  if (isTest) {
+    return getTestPrismaClient()
+  } else {
+    if (!prodPrisma) {
+      prodPrisma = createPrismaClient()
+    }
+    return prodPrisma
+  }
+}
 
 export interface CreateQueryData {
   prompt: string
@@ -57,13 +67,13 @@ export interface CreateKanjiData {
 
 /** Create a new query record */
 export async function createQuery(data: CreateQueryData): Promise<Query> {
-  return await prisma.query.create({
+  return await getPrismaClient().query.create({
     data,
   })
 }
 /** Get a query by ID with all related data */
 export async function getQueryWithCards(id: number): Promise<Query | null> {
-  return await prisma.query.findUnique({
+  return await getPrismaClient().query.findUnique({
     where: { id },
     include: {
       phrases: true,
@@ -75,7 +85,7 @@ export async function getQueryWithCards(id: number): Promise<Query | null> {
 export async function getAllQueries(): Promise<
   Array<Query & { _count: { phrases: number; kanji: number } }>
 > {
-  return await prisma.query.findMany({
+  return await getPrismaClient().query.findMany({
     include: {
       _count: {
         select: {
@@ -91,31 +101,31 @@ export async function getAllQueries(): Promise<
 }
 /** Create a new phrase */
 export async function createPhrase(data: CreatePhraseData): Promise<Phrase> {
-  return await prisma.phrase.create({
+  return await getPrismaClient().phrase.create({
     data,
   })
 }
 /** Create multiple phrases */
 export async function createPhrases(phrases: CreatePhraseData[]): Promise<void> {
-  await prisma.phrase.createMany({
+  await getPrismaClient().phrase.createMany({
     data: phrases,
   })
 }
 /** Create a new kanji */
 export async function createKanji(data: CreateKanjiData): Promise<Kanji> {
-  return await prisma.kanji.create({
+  return await getPrismaClient().kanji.create({
     data,
   })
 }
 /** Create multiple kanji */
 export async function createKanjis(kanjis: CreateKanjiData[]): Promise<void> {
-  await prisma.kanji.createMany({
+  await getPrismaClient().kanji.createMany({
     data: kanjis,
   })
 }
 /** Get all phrases for all queries */
 export async function getAllPhrases(): Promise<Phrase[]> {
-  return await prisma.phrase.findMany({
+  return await getPrismaClient().phrase.findMany({
     orderBy: {
       kanji: 'asc',
     },
@@ -123,7 +133,7 @@ export async function getAllPhrases(): Promise<Phrase[]> {
 }
 /** Get all kanji for all queries */
 export async function getAllKanji(): Promise<Kanji[]> {
-  return await prisma.kanji.findMany({
+  return await getPrismaClient().kanji.findMany({
     orderBy: {
       kanji: 'asc',
     },
@@ -131,14 +141,14 @@ export async function getAllKanji(): Promise<Kanji[]> {
 }
 /** Check if a kanji already exists */
 export async function kanjiExists(kanji: string): Promise<boolean> {
-  const existing = await prisma.kanji.findUnique({
+  const existing = await getPrismaClient().kanji.findUnique({
     where: { kanji },
   })
   return existing !== null
 }
 /** Get existing kanji characters */
 export async function getExistingKanji(kanjis: string[]): Promise<string[]> {
-  const existing = await prisma.kanji.findMany({
+  const existing = await getPrismaClient().kanji.findMany({
     where: {
       kanji: {
         in: kanjis,
@@ -152,7 +162,7 @@ export async function getExistingKanji(kanjis: string[]): Promise<string[]> {
 }
 /** Delete a query and all associated cards */
 export async function deleteQuery(id: number): Promise<void> {
-  await prisma.query.delete({
+  await getPrismaClient().query.delete({
     where: { id },
   })
 }
@@ -160,7 +170,8 @@ export async function deleteQuery(id: number): Promise<void> {
 /** Initialize the database and run auto-migrations */
 export async function initializeDatabase(): Promise<void> {
   try {
-    await prodPrisma.$connect()
+    const client = getPrismaClient()
+    await client.$connect()
 
     // Deploy pending migrations in production/development
     const { spawn } = await import('node:child_process')

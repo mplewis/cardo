@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { truncateDatabase } from '../test-utils'
 import {
   createQuery,
   getQueryWithCards,
@@ -9,6 +10,10 @@ import {
   getExistingKanji,
   deleteQuery,
 } from './database'
+
+afterEach(async () => {
+  await truncateDatabase()
+})
 
 describe('database', () => {
   describe('createQuery', () => {
