@@ -17,7 +17,7 @@ model Query {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   phrases     Phrase[]
-  individualKanji IndividualKanji[]
+  kanji       Kanji[]
 }
 
 model Phrase {
@@ -33,7 +33,7 @@ model Phrase {
   @@unique([kanji, queryId])
 }
 
-model IndividualKanji {
+model Kanji {
   id              Int    @id @default(autoincrement())
   englishMeaning  String
   kanji           String @unique

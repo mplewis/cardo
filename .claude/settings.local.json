@@ -5,9 +5,12 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpx @biomejs/biome:*)",
-      "Bash(pnpx prisma:*)",
-      "Bash(pnpm remove:*)"
+      "Bash(pnpm @biomejs/biome:*)",
+      "Bash(pnpm prisma:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(DATABASE_URL=\"file:./tmp/test.db\" pnpm prisma db push)",
+      "Bash(sqlite3:*)",
+      "Bash(pnpm vitest run:*)"
     ],
     "deny": [],
     "ask": []

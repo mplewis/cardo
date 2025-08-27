@@ -1,17 +1,18 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ConsolidationService, type RawLlmResponse } from './consolidation-service'
-import type { DatabaseService } from './database-service'
+import { consolidate, type RawLlmResponse } from './consolidation'
 
-describe('ConsolidationService', () => {
-  const mockDbService = {
-    getExistingKanji: vi.fn(),
-  } as unknown as DatabaseService
+// Mock the database module
+vi.mock('./database', () => ({
+  getExistingKanji: vi.fn(),
+}))
 
-  const service = new ConsolidationService(mockDbService)
+// Import the mocked function
+const { getExistingKanji } = await import('./database')
+const mockGetExistingKanji = vi.mocked(getExistingKanji)
 
-  describe('consolidate', () => {
+describe('consolidate', () => {
     it('separates phrases from individual kanji', async () => {
-      vi.mocked(mockDbService.getExistingKanji).mockResolvedValue([])
+      mockGetExistingKanji.mockResolvedValue([])
 
       const rawData: RawLlmResponse[] = [
         {
@@ -30,7 +31,7 @@ describe('ConsolidationService', () => {
         },
       ]
 
-      const result = await service.consolidate(rawData)
+      const result = await consolidate(rawData)
 
       expect(result.phrases).toHaveLength(1)
       expect(result.phrases[0]).toMatchObject({
@@ -38,15 +39,15 @@ describe('ConsolidationService', () => {
         englishMeaning: 'Exit',
       })
 
-      expect(result.individualKanji).toHaveLength(1)
-      expect(result.individualKanji[0]).toMatchObject({
+      expect(result.kanji).toHaveLength(1)
+      expect(result.kanji[0]).toMatchObject({
         kanji: '出',
         englishMeaning: 'exit',
       })
     })
 
     it('extracts kanji from phrase breakdowns', async () => {
-      vi.mocked(mockDbService.getExistingKanji).mockResolvedValue([])
+      mockGetExistingKanji.mockResolvedValue([])
 
       const rawData: RawLlmResponse[] = [
         {
@@ -58,15 +59,15 @@ describe('ConsolidationService', () => {
         },
       ]
 
-      const result = await service.consolidate(rawData)
+      const result = await consolidate(rawData)
 
       expect(result.phrases).toHaveLength(1)
       // Should extract 現 and 金 from the breakdown
-      expect(mockDbService.getExistingKanji).toHaveBeenCalledWith(['現', '金'])
+      expect(mockGetExistingKanji).toHaveBeenCalledWith(['現', '金'])
     })
 
     it('deduplicates against existing kanji', async () => {
-      vi.mocked(mockDbService.getExistingKanji).mockResolvedValue(['出'])
+      mockGetExistingKanji.mockResolvedValue(['出'])
 
       const rawData: RawLlmResponse[] = [
         {
@@ -78,15 +79,15 @@ describe('ConsolidationService', () => {
         },
       ]
 
-      const result = await service.consolidate(rawData)
+      const result = await consolidate(rawData)
 
       // Should not include 出 since it already exists
       // But should want to include 口 since it's new
-      expect(result.individualKanji).toHaveLength(0)
+      expect(result.kanji).toHaveLength(0)
     })
 
     it('handles kata only breakdowns', async () => {
-      vi.mocked(mockDbService.getExistingKanji).mockResolvedValue([])
+      mockGetExistingKanji.mockResolvedValue([])
 
       const rawData: RawLlmResponse[] = [
         {
@@ -98,14 +99,14 @@ describe('ConsolidationService', () => {
         },
       ]
 
-      const result = await service.consolidate(rawData)
+      const result = await consolidate(rawData)
 
       expect(result.phrases).toHaveLength(1)
-      expect(mockDbService.getExistingKanji).toHaveBeenCalledWith([])
+      expect(mockGetExistingKanji).toHaveBeenCalledWith([])
     })
 
     it('handles complex breakdown formats', async () => {
-      vi.mocked(mockDbService.getExistingKanji).mockResolvedValue([])
+      mockGetExistingKanji.mockResolvedValue([])
 
       const rawData: RawLlmResponse[] = [
         {
@@ -117,10 +118,9 @@ describe('ConsolidationService', () => {
         },
       ]
 
-      const result = await service.consolidate(rawData)
+      const result = await consolidate(rawData)
 
       expect(result.phrases).toHaveLength(1)
-      expect(mockDbService.getExistingKanji).toHaveBeenCalledWith(['薬', '局'])
+      expect(mockGetExistingKanji).toHaveBeenCalledWith(['薬', '局'])
     })
-  })
 })

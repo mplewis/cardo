@@ -1,16 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { DatabaseService } from './database-service'
+import {
+  createQuery,
+  getQueryWithCards,
+  createPhrase,
+  createPhrases,
+  createKanji,
+  kanjiExists,
+  getExistingKanji,
+  deleteQuery,
+} from './database'
 
-describe('DatabaseService', () => {
-  const dbService = new DatabaseService()
-
+describe('database', () => {
   describe('createQuery', () => {
     it('creates a new query', async () => {
       const queryData = {
         prompt: 'Common train station signs',
       }
 
-      const query = await dbService.createQuery(queryData)
+      const query = await createQuery(queryData)
 
       expect(query).toMatchObject({
         id: expect.any(Number),
@@ -23,9 +30,9 @@ describe('DatabaseService', () => {
 
   describe('getQueryWithCards', () => {
     it('returns query with related phrases and kanji', async () => {
-      const query = await dbService.createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ prompt: 'Test query' })
 
-      await dbService.createPhrase({
+      await createPhrase({
         englishMeaning: 'Exit',
         kanji: '出口',
         phoneticKana: 'でぐち',
@@ -34,7 +41,7 @@ describe('DatabaseService', () => {
         queryId: query.id,
       })
 
-      await dbService.createIndividualKanji({
+      await createKanji({
         englishMeaning: 'exit',
         kanji: '出',
         phoneticKana: 'で',
@@ -42,7 +49,7 @@ describe('DatabaseService', () => {
         queryId: query.id,
       })
 
-      const result = await dbService.getQueryWithCards(query.id)
+      const result = await getQueryWithCards(query.id)
 
       expect(result).toMatchObject({
         id: query.id,
@@ -53,7 +60,7 @@ describe('DatabaseService', () => {
             englishMeaning: 'Exit',
           }),
         ],
-        individualKanji: [
+        kanji: [
           expect.objectContaining({
             kanji: '出',
             englishMeaning: 'exit',
@@ -65,7 +72,7 @@ describe('DatabaseService', () => {
 
   describe('createPhrases', () => {
     it('creates multiple phrases', async () => {
-      const query = await dbService.createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ prompt: 'Test query' })
 
       const phrases = [
         {
@@ -86,18 +93,18 @@ describe('DatabaseService', () => {
         },
       ]
 
-      await dbService.createPhrases(phrases)
+      await createPhrases(phrases)
 
-      const result = await dbService.getQueryWithCards(query.id)
+      const result = await getQueryWithCards(query.id)
       expect(result?.phrases).toHaveLength(2)
     })
   })
 
-  describe('individualKanjiExists', () => {
+  describe('kanjiExists', () => {
     it('returns true for existing kanji', async () => {
-      const query = await dbService.createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ prompt: 'Test query' })
 
-      await dbService.createIndividualKanji({
+      await createKanji({
         englishMeaning: 'exit',
         kanji: '出',
         phoneticKana: 'で',
@@ -105,21 +112,21 @@ describe('DatabaseService', () => {
         queryId: query.id,
       })
 
-      const exists = await dbService.individualKanjiExists('出')
+      const exists = await kanjiExists('出')
       expect(exists).toBe(true)
     })
 
     it('returns false for non-existing kanji', async () => {
-      const exists = await dbService.individualKanjiExists('非')
+      const exists = await kanjiExists('非')
       expect(exists).toBe(false)
     })
   })
 
   describe('getExistingKanji', () => {
     it('returns only existing kanji from list', async () => {
-      const query = await dbService.createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ prompt: 'Test query' })
 
-      await dbService.createIndividualKanji({
+      await createKanji({
         englishMeaning: 'exit',
         kanji: '出',
         phoneticKana: 'で',
@@ -127,16 +134,16 @@ describe('DatabaseService', () => {
         queryId: query.id,
       })
 
-      const existing = await dbService.getExistingKanji(['出', '入', '口'])
+      const existing = await getExistingKanji(['出', '入', '口'])
       expect(existing).toEqual(['出'])
     })
   })
 
   describe('deleteQuery', () => {
     it('deletes query and cascades to related data', async () => {
-      const query = await dbService.createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ prompt: 'Test query' })
 
-      await dbService.createPhrase({
+      await createPhrase({
         englishMeaning: 'Exit',
         kanji: '出口',
         phoneticKana: 'でぐち',
@@ -145,9 +152,9 @@ describe('DatabaseService', () => {
         queryId: query.id,
       })
 
-      await dbService.deleteQuery(query.id)
+      await deleteQuery(query.id)
 
-      const result = await dbService.getQueryWithCards(query.id)
+      const result = await getQueryWithCards(query.id)
       expect(result).toBeNull()
     })
   })

@@ -1,12 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import type { CardData } from './card-service'
-import { ExportService } from './export-service'
+import type { CardData } from '../lib/card'
+import { exportToCSV } from '../lib/export'
 
-describe('ExportService', () => {
-  const service = new ExportService()
-
-  describe('exportToCSV', () => {
+describe('exportToCSV', () => {
     it('creates CSV files for phrases and kanji', async () => {
       const cardData: CardData = {
         phrases: [
@@ -25,7 +22,7 @@ describe('ExportService', () => {
             kanjiBreakdown: '現金 = cash / のみ = only',
           },
         ],
-        individualKanji: [
+        kanji: [
           {
             englishMeaning: 'exit',
             kanji: '出',
@@ -41,7 +38,7 @@ describe('ExportService', () => {
         ],
       }
 
-      const result = await service.exportToCSV(cardData)
+      const result = await exportToCSV(cardData)
 
       // Check that files exist and have correct structure
       expect(result.phrasesPath).toBeTruthy()
@@ -80,10 +77,10 @@ describe('ExportService', () => {
             kanjiBreakdown: 'Contains, comma and "quotes"',
           },
         ],
-        individualKanji: [],
+        kanji: [],
       }
 
-      const result = await service.exportToCSV(cardData)
+      const result = await exportToCSV(cardData)
       const phrasesContent = readFileSync(result.phrasesPath, 'utf-8')
       const phrasesLines = phrasesContent.split('\n')
 
@@ -95,10 +92,10 @@ describe('ExportService', () => {
     it('handles empty data', async () => {
       const cardData: CardData = {
         phrases: [],
-        individualKanji: [],
+        kanji: [],
       }
 
-      const result = await service.exportToCSV(cardData)
+      const result = await exportToCSV(cardData)
 
       // Should still create files with just headers
       const phrasesContent = readFileSync(result.phrasesPath, 'utf-8')
@@ -109,5 +106,4 @@ describe('ExportService', () => {
       const kanjiContent = readFileSync(result.kanjiPath, 'utf-8')
       expect(kanjiContent).toBe('English Meaning,Kanji,Phonetic Kana,Phonetic Romaji')
     })
-  })
 })

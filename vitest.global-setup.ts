@@ -1,5 +1,5 @@
 import { resolve } from 'node:path'
-import { getTestPrismaClient, closeTestPrismaClient } from './src/test-database'
+import { closeTestPrismaClient, getTestPrismaClient } from './src/test-database'
 
 export async function setup() {
   // Set test database URL to absolute path
@@ -7,14 +7,10 @@ export async function setup() {
   process.env.DATABASE_URL = `file:${testDbPath}`
   process.env.NODE_ENV = 'test'
 
-  // Get shared test database client and connect
-  const testPrisma = getTestPrismaClient()
-  await testPrisma.$connect()
-
-  // Run migrations for test database
+  // Run migrations for test database first
   const { spawn } = await import('node:child_process')
   await new Promise<void>((resolve, reject) => {
-    const child = spawn('npx', ['prisma', 'db', 'push', '--accept-data-loss'], {
+    const child = spawn('pnpm', ['prisma', 'db', 'push', '--accept-data-loss'], {
       stdio: 'inherit',
       env: { ...process.env, DATABASE_URL: `file:${testDbPath}` },
     })
@@ -27,6 +23,10 @@ export async function setup() {
       }
     })
   })
+
+  // Then get shared test database client and connect
+  const testPrisma = getTestPrismaClient()
+  await testPrisma.$connect()
 }
 
 export async function teardown() {
