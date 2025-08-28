@@ -41,12 +41,12 @@
 
 ## Phase 5: LLM Integration
 
-- [ ] Integrate any-llm library
-- [ ] Create prompt templates in `resources/prompts/`
-- [ ] Implement LLM query functions for phrases and individual kanji
-- [ ] Add structured data parsing from LLM responses
-- [ ] Update Phase 3: Query LLM for individual kanji meanings
-- [ ] Add tests
+- [x] Integrate any-llm library
+- [x] Create prompt templates in `resources/prompts/`
+- [x] Implement LLM query functions for phrases and individual kanji
+- [x] Add structured data parsing from LLM responses
+- [x] Update Phase 3: Query LLM for individual kanji meanings
+- [x] Add tests
 
 ## Phase 6: CLI Commands
 

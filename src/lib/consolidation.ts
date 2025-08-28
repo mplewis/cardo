@@ -1,4 +1,6 @@
 import { getExistingKanji } from './database'
+import { createLlmService } from './llm'
+import { log } from './logger'
 
 export interface RawLlmResponse {
   kanji: string
@@ -31,7 +33,8 @@ export interface ConsolidationResult {
  * 1. Separate 1-char (individual kanji) from 2+ char (phrases)
  * 2. Extract individual kanji from phrase breakdowns
  * 3. Deduplicate against existing kanji in database
- * 4. Return structured data for further processing
+ * 4. Query LLM for meanings of new kanji that don't have data
+ * 5. Return structured data for further processing
  */
 export async function consolidate(rawData: RawLlmResponse[]): Promise<ConsolidationResult> {
   const phrases: ConsolidationResult['phrases'] = []
@@ -70,7 +73,35 @@ export async function consolidate(rawData: RawLlmResponse[]): Promise<Consolidat
   const existingKanji = await getExistingKanji([...kanjiSet])
   const newKanji = [...kanjiSet].filter((k) => !existingKanji.includes(k))
 
-  // Build result for new kanji that have data
+  // Step 4: Identify kanji that need LLM lookup
+  const kanjiNeedingLookup: string[] = []
+  for (const kanjiChar of newKanji) {
+    if (!kanjiData.has(kanjiChar)) {
+      kanjiNeedingLookup.push(kanjiChar)
+    }
+  }
+
+  // Step 5: Query LLM for missing kanji meanings
+  if (kanjiNeedingLookup.length > 0) {
+    log.info(`Querying LLM for meanings of ${kanjiNeedingLookup.length} kanji`)
+    try {
+      const llmService = createLlmService()
+      const llmKanjiData = await llmService.generateKanjiMeanings(kanjiNeedingLookup)
+
+      // Add LLM data to our map
+      for (const kanjiInfo of llmKanjiData) {
+        kanjiData.set(kanjiInfo.kanji, {
+          meaning: kanjiInfo.englishMeaning,
+          kana: kanjiInfo.phoneticKana,
+          romaji: kanjiInfo.phoneticRomaji,
+        })
+      }
+    } catch (error) {
+      log.warn({ error }, 'Failed to get kanji meanings from LLM')
+    }
+  }
+
+  // Step 6: Build result for new kanji that have data
   const kanji: ConsolidationResult['kanji'] = []
   for (const kanjiChar of newKanji) {
     const data = kanjiData.get(kanjiChar)

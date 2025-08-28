@@ -6,6 +6,7 @@ import {
   getAllPhrases,
   getQueryWithCards,
 } from './database'
+import { createLlmService } from './llm'
 
 export interface CardData {
   phrases: Array<{
@@ -121,4 +122,26 @@ export async function getAllCards(): Promise<CardData> {
       phoneticRomaji: k.phoneticRomaji,
     })),
   }
+}
+
+/**
+ * Generate cards from LLM query based on domain
+ *
+ * Process:
+ * 1. Query LLM for phrases matching the domain
+ * 2. Use existing consolidation and storage logic
+ * 3. Return card data for display/export
+ */
+export async function generateCardsFromQuery(
+  queryId: number,
+  domain: string,
+  count: number
+): Promise<CardData> {
+  const llmService = createLlmService()
+
+  // Get raw data from LLM
+  const rawLlmData = await llmService.generatePhrases(domain, count)
+
+  // Use existing card generation logic
+  return generateCards(queryId, rawLlmData)
 }

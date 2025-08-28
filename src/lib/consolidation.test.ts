@@ -6,6 +6,23 @@ vi.mock('./database', () => ({
   getExistingKanji: vi.fn(),
 }))
 
+// Mock the logger
+vi.mock('./logger', () => ({
+  log: {
+    info: vi.fn(),
+    debug: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+}))
+
+// Mock the LLM service
+vi.mock('./llm', () => ({
+  createLlmService: vi.fn(() => ({
+    generateKanjiMeanings: vi.fn().mockResolvedValue([]),
+  })),
+}))
+
 // Import the mocked function
 const { getExistingKanji } = await import('./database')
 const mockGetExistingKanji = vi.mocked(getExistingKanji)
