@@ -17,7 +17,9 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm ls:*)",
       "Bash(mv:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm start:*)"
     ],
     "deny": [],
     "ask": []

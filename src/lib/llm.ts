@@ -134,8 +134,54 @@ export class LlmService {
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
       log.debug({ response }, 'Raw LLM response')
+      console.log('=== RAW LLM RESPONSE ===')
+      console.log(response)
+      console.log('=== END RAW LLM RESPONSE ===')
 
-      const parsedData = this.parsePhrasesResponse(response)
+      // Clean up streaming format if needed
+      let cleanResponse = response
+      if (typeof response === 'string' && response.includes('0:"')) {
+        // Find each chunk starting with 0:" and ending with "
+        const chunks = []
+        let pos = 0
+
+        while (pos < response.length) {
+          const start = response.indexOf('0:"', pos)
+          if (start === -1) break
+
+          const contentStart = start + 3 // Skip '0:"'
+
+          // Find the closing quote, but skip over any escaped quotes (\")
+          let end = contentStart
+          while (end < response.length) {
+            const nextQuote = response.indexOf('"', end)
+            if (nextQuote === -1) break
+
+            // Check if this quote is escaped
+            if (response[nextQuote - 1] === '\\') {
+              end = nextQuote + 1 // Skip this escaped quote
+            } else {
+              end = nextQuote // Found the real closing quote
+              break
+            }
+          }
+
+          if (end >= response.length) break
+
+          // Extract content and unescape quotes
+          const content = response.slice(contentStart, end)
+          chunks.push(content.replace(/\\"/g, '"'))
+
+          pos = end + 1
+        }
+
+        cleanResponse = chunks.join('')
+      }
+      console.log('=== CLEANED LLM RESPONSE ===')
+      console.log(cleanResponse)
+      console.log('=== END CLEANED LLM RESPONSE ===')
+
+      const parsedData = this.parsePhrasesResponse(cleanResponse)
       log.info(`Parsed ${parsedData.length} phrases from LLM response`)
 
       return parsedData

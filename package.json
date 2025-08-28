@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
+    "start": "tsx src/index.ts",
     "test": "vitest",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
@@ -15,6 +16,16 @@
   },
   "bin": {
     "cardo": "./dist/index.js"
+  },
+  "oclif": {
+    "bin": "cardo",
+    "dirname": "cardo",
+    "commands": "./src/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": " ",
+    "topics": {}
   },
   "keywords": [],
   "author": "",

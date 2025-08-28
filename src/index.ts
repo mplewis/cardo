@@ -3,4 +3,7 @@
 import { run } from '@oclif/core'
 import 'dotenv/config'
 
-await run()
+run().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
