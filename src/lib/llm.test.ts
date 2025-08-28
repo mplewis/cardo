@@ -50,10 +50,22 @@ describe('LlmService', () => {
   describe('generatePhrases', () => {
     it('generates phrases from LLM response', async () => {
       const mockPromptTemplate = 'Generate {{count}} phrases for {{domain}}'
-      const mockLlmResponse = `| English Meaning | Kanji | Phonetic Kana | Kanji Breakdown |
-| --------------- | ----- | ------------- | --------------- |
-| Exit            | 出口  | でぐち        | 出 = exit / 口 = mouth |
-| Restaurant      | 食堂  | しょくどう    | 食 = food / 堂 = hall |`
+      const mockLlmResponse = `[
+        {
+          "englishMeaning": "Exit",
+          "kanji": "出口",
+          "phoneticKana": "でぐち",
+          "phoneticRomaji": "deguchi",
+          "kanjiBreakdown": "出 = exit / 口 = mouth"
+        },
+        {
+          "englishMeaning": "Restaurant",
+          "kanji": "食堂",
+          "phoneticKana": "しょくどう",
+          "phoneticRomaji": "shokudou",
+          "kanjiBreakdown": "食 = food / 堂 = hall"
+        }
+      ]`
 
       mockReadFile.mockResolvedValue(mockPromptTemplate)
       mockClient.createChatCompletionNonStreaming.mockResolvedValue(mockLlmResponse)
@@ -65,14 +77,14 @@ describe('LlmService', () => {
           englishMeaning: 'Exit',
           kanji: '出口',
           phoneticKana: 'でぐち',
-          phoneticRomaji: '',
+          phoneticRomaji: 'deguchi',
           kanjiBreakdown: '出 = exit / 口 = mouth',
         },
         {
           englishMeaning: 'Restaurant',
           kanji: '食堂',
           phoneticKana: 'しょくどう',
-          phoneticRomaji: '',
+          phoneticRomaji: 'shokudou',
           kanjiBreakdown: '食 = food / 堂 = hall',
         },
       ])
@@ -90,13 +102,13 @@ describe('LlmService', () => {
       )
     })
 
-    it('throws error when no table found in response', async () => {
+    it('throws error when no JSON found in response', async () => {
       const mockPromptTemplate = 'Generate {{count}} phrases for {{domain}}'
       mockReadFile.mockResolvedValue(mockPromptTemplate)
-      mockClient.createChatCompletionNonStreaming.mockResolvedValue('No table here!')
+      mockClient.createChatCompletionNonStreaming.mockResolvedValue('No JSON here!')
 
       await expect(llmService.generatePhrases('test', 1)).rejects.toThrow(
-        'No valid data rows found in LLM response table'
+        'No JSON array found in LLM response'
       )
     })
   })
@@ -104,10 +116,20 @@ describe('LlmService', () => {
   describe('generateKanjiMeanings', () => {
     it('generates kanji meanings from LLM response', async () => {
       const mockPromptTemplate = 'Analyze these kanji: {{kanjiList}}'
-      const mockLlmResponse = `| English Meaning | Kanji | Phonetic Kana | Phonetic Romaji |
-| --------------- | ----- | ------------- | --------------- |
-| exit, go out    | 出    | で            | de              |
-| mouth, opening  | 口    | ぐち          | guchi           |`
+      const mockLlmResponse = `[
+        {
+          "englishMeaning": "exit, go out",
+          "kanji": "出",
+          "phoneticKana": "で",
+          "phoneticRomaji": "de"
+        },
+        {
+          "englishMeaning": "mouth, opening",
+          "kanji": "口",
+          "phoneticKana": "ぐち",
+          "phoneticRomaji": "guchi"
+        }
+      ]`
 
       mockReadFile.mockResolvedValue(mockPromptTemplate)
       mockClient.createChatCompletionNonStreaming.mockResolvedValue(mockLlmResponse)

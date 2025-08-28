@@ -10,6 +10,7 @@ import {
   ModelProvider,
   OpenAIChatModels,
 } from 'any-llm'
+import { z } from 'zod'
 import type { RawLlmResponse } from './consolidation'
 import { log } from './logger'
 
@@ -21,6 +22,33 @@ export interface LlmConfig {
   model: ChatModel
   apiKey?: string
 }
+
+/**
+ * Zod schema for phrase data from LLM
+ */
+const phraseSchema = z.object({
+  englishMeaning: z.string().min(1),
+  kanji: z.string().min(2),
+  phoneticKana: z.string().min(1),
+  phoneticRomaji: z.string().min(1),
+  kanjiBreakdown: z.string().min(1),
+})
+
+/**
+ * Zod schema for individual kanji data from LLM
+ */
+const kanjiSchema = z.object({
+  englishMeaning: z.string().min(1),
+  kanji: z.string().length(1),
+  phoneticKana: z.string().min(1),
+  phoneticRomaji: z.string().min(1),
+})
+
+/**
+ * Array schemas for LLM responses
+ */
+const phrasesArraySchema = z.array(phraseSchema)
+const kanjiArraySchema = z.array(kanjiSchema)
 
 /**
  * Service for interacting with LLMs to generate Japanese kanji cards
@@ -179,64 +207,40 @@ export class LlmService {
    * Parse phrases response from LLM into structured data
    */
   private parsePhrasesResponse(response: string): RawLlmResponse[] {
-    const results: RawLlmResponse[] = []
-
-    // Split response into lines and find table rows
-    const lines = response.split('\n').filter((line) => line.trim())
-
-    let inTable = false
-    let headerFound = false
-
-    for (const line of lines) {
-      // Check if this line looks like a table row
-      if (line.includes('|')) {
-        const cells = line
-          .split('|')
-          .map((cell) => cell.trim())
-          .filter((cell) => cell !== '')
-
-        // Skip empty rows
-        if (cells.length === 0) continue
-
-        // Check if this is a header row
-        if (
-          !headerFound &&
-          cells.some(
-            (cell) => cell.toLowerCase().includes('english') || cell.toLowerCase().includes('kanji')
-          )
-        ) {
-          headerFound = true
-          inTable = true
-          continue
-        }
-
-        // Check if this is a separator row (contains dashes)
-        if (cells.every((cell) => /^[\s-|:]*$/.test(cell))) {
-          continue
-        }
-
-        // If we're in a table and this has 4+ cells, it's a data row
-        if (inTable && cells.length >= 4) {
-          const [englishMeaning, kanji, phoneticKana, kanjiBreakdown] = cells
-
-          if (englishMeaning && kanji && phoneticKana && kanjiBreakdown) {
-            results.push({
-              englishMeaning,
-              kanji,
-              phoneticKana,
-              phoneticRomaji: '', // We don't get romaji from phrase prompts
-              kanjiBreakdown,
-            })
-          }
-        }
+    try {
+      // Extract JSON from response (handle cases where LLM adds extra text)
+      const jsonMatch = response.match(/\[[\s\S]*\]/)
+      if (!jsonMatch) {
+        throw new Error('No JSON array found in LLM response')
       }
-    }
 
-    if (results.length === 0) {
-      throw new Error('No valid data rows found in LLM response table')
-    }
+      const jsonString = jsonMatch[0]
+      const parsedJson = JSON.parse(jsonString)
 
-    return results
+      // Validate with Zod schema
+      const validatedData = phrasesArraySchema.parse(parsedJson)
+
+      // Convert to RawLlmResponse format
+      return validatedData.map((phrase) => ({
+        englishMeaning: phrase.englishMeaning,
+        kanji: phrase.kanji,
+        phoneticKana: phrase.phoneticKana,
+        phoneticRomaji: phrase.phoneticRomaji,
+        kanjiBreakdown: phrase.kanjiBreakdown,
+      }))
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        log.error({ error: error.issues }, 'Invalid phrase data structure from LLM')
+        throw new Error(
+          `Invalid phrase data structure: ${error.issues.map((e) => e.message).join(', ')}`
+        )
+      }
+
+      log.error({ error }, 'Failed to parse phrases JSON from LLM response')
+      throw new Error(
+        `Failed to parse phrases JSON: ${error instanceof Error ? error.message : String(error)}`
+      )
+    }
   }
 
   /**
@@ -248,68 +252,34 @@ export class LlmService {
     phoneticKana: string
     phoneticRomaji: string
   }> {
-    const results: Array<{
-      englishMeaning: string
-      kanji: string
-      phoneticKana: string
-      phoneticRomaji: string
-    }> = []
-
-    // Split response into lines and find table rows
-    const lines = response.split('\n').filter((line) => line.trim())
-
-    let inTable = false
-    let headerFound = false
-
-    for (const line of lines) {
-      // Check if this line looks like a table row
-      if (line.includes('|')) {
-        const cells = line
-          .split('|')
-          .map((cell) => cell.trim())
-          .filter((cell) => cell !== '')
-
-        // Skip empty rows
-        if (cells.length === 0) continue
-
-        // Check if this is a header row
-        if (
-          !headerFound &&
-          cells.some(
-            (cell) => cell.toLowerCase().includes('english') || cell.toLowerCase().includes('kanji')
-          )
-        ) {
-          headerFound = true
-          inTable = true
-          continue
-        }
-
-        // Check if this is a separator row (contains dashes)
-        if (cells.every((cell) => /^[\s-|:]*$/.test(cell))) {
-          continue
-        }
-
-        // If we're in a table and this has 4+ cells, it's a data row
-        if (inTable && cells.length >= 4) {
-          const [englishMeaning, kanji, phoneticKana, phoneticRomaji] = cells
-
-          if (englishMeaning && kanji && phoneticKana && phoneticRomaji) {
-            results.push({
-              englishMeaning,
-              kanji,
-              phoneticKana,
-              phoneticRomaji,
-            })
-          }
-        }
+    try {
+      // Extract JSON from response (handle cases where LLM adds extra text)
+      const jsonMatch = response.match(/\[[\s\S]*\]/)
+      if (!jsonMatch) {
+        throw new Error('No JSON array found in LLM response')
       }
-    }
 
-    if (results.length === 0) {
-      throw new Error('No valid data rows found in LLM response table')
-    }
+      const jsonString = jsonMatch[0]
+      const parsedJson = JSON.parse(jsonString)
 
-    return results
+      // Validate with Zod schema
+      const validatedData = kanjiArraySchema.parse(parsedJson)
+
+      // Return validated data (already in correct format)
+      return validatedData
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        log.error({ error: error.issues }, 'Invalid kanji data structure from LLM')
+        throw new Error(
+          `Invalid kanji data structure: ${error.issues.map((e) => e.message).join(', ')}`
+        )
+      }
+
+      log.error({ error }, 'Failed to parse kanji JSON from LLM response')
+      throw new Error(
+        `Failed to parse kanji JSON: ${error instanceof Error ? error.message : String(error)}`
+      )
+    }
   }
 }
 

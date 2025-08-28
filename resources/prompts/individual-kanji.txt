@@ -5,24 +5,36 @@ Here are the kanji to analyze:
 
 For each kanji, provide the most common meaning(s) and pronunciation(s) that would be useful for travelers learning to read Japanese signage.
 
-Return the results as a markdown table with these exact column headers:
-| English Meaning | Kanji | Phonetic Kana | Phonetic Romaji |
-
-Guidelines:
-- English Meaning: The most common and practical meaning(s), separated by commas if multiple
-- Kanji: The single kanji character
-- Phonetic Kana: The most common reading in hiragana (on-yomi or kun-yomi, whichever is more useful for signage)
-- Phonetic Romaji: Romanized pronunciation of the kana
+Return the results as a JSON array of objects with these exact properties:
+- englishMeaning: The most common and practical meaning(s), separated by commas if multiple
+- kanji: The single kanji character
+- phoneticKana: The most common reading in hiragana (on-yomi or kun-yomi, whichever is more useful for signage)
+- phoneticRomaji: Romanized pronunciation of the kana
 
 Example format:
-| English Meaning         | Kanji | Phonetic Kana | Phonetic Romaji |
-| ----------------------- | ----- | ------------- | --------------- |
-| not, non-               | 不    | ふ            | fu              |
-| middle, inside, during  | 中    | ちゅう        | chuu            |
-| prepare, provide, equip | 備    | び            | bi              |
+[
+  {
+    "englishMeaning": "not, non-",
+    "kanji": "不",
+    "phoneticKana": "ふ",
+    "phoneticRomaji": "fu"
+  },
+  {
+    "englishMeaning": "middle, inside, during",
+    "kanji": "中",
+    "phoneticKana": "ちゅう",
+    "phoneticRomaji": "chuu"
+  },
+  {
+    "englishMeaning": "prepare, provide, equip",
+    "kanji": "備",
+    "phoneticKana": "び",
+    "phoneticRomaji": "bi"
+  }
+]
 
 Important:
-- Each row must contain exactly ONE kanji character
+- Each object must contain exactly ONE kanji character
 - Focus on meanings most relevant for reading signs and navigation
 - Choose the reading most commonly used in compound words and signage
-- Return only the markdown table, no additional text
+- Return only valid JSON array, no additional text or formatting

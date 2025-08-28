@@ -4,23 +4,33 @@ Generate {{count}} Japanese phrases that match this domain: "{{domain}}"
 
 Focus on practical phrases that tourists will actually encounter in real-world signage. Each phrase must be at least 2 kanji characters long.
 
-Return the results as a markdown table with these exact column headers:
-| English Meaning | Kanji | Phonetic Kana | Kanji Breakdown |
-
-Guidelines:
-- English Meaning: Clear, practical translation
-- Kanji: The Japanese characters (must be 2+ characters)
-- Phonetic Kana: How to pronounce the phrase in hiragana/katakana
-- Kanji Breakdown: What each individual kanji means, separated by " / ". If the phrase contains only kana (no kanji), use "kana only"
+Return the results as a JSON array of objects with these exact properties:
+- englishMeaning: Clear, practical translation
+- kanji: The Japanese characters (must be 2+ characters)
+- phoneticKana: How to pronounce the phrase in hiragana/katakana
+- phoneticRomaji: Romanized pronunciation of the phrase
+- kanjiBreakdown: What each individual kanji means, separated by " / ". If the phrase contains only kana (no kanji), use "kana only"
 
 Example format:
-| English Meaning | Kanji    | Phonetic Kana | Kanji Breakdown                         |
-| --------------- | -------- | ------------- | --------------------------------------- |
-| Exit            | 出口     | でぐち        | 出 = exit, go out / 口 = mouth, opening |
-| Cash Only       | 現金のみ | げんきんのみ  | 現金 = cash / のみ = only               |
+[
+  {
+    "englishMeaning": "Exit",
+    "kanji": "出口",
+    "phoneticKana": "でぐち",
+    "phoneticRomaji": "deguchi",
+    "kanjiBreakdown": "出 = exit, go out / 口 = mouth, opening"
+  },
+  {
+    "englishMeaning": "Cash Only",
+    "kanji": "現金のみ",
+    "phoneticKana": "げんきんのみ",
+    "phoneticRomaji": "genkin no mi",
+    "kanjiBreakdown": "現金 = cash / のみ = only"
+  }
+]
 
 Important: 
 - ALL phrases must be exactly 2 or more characters
 - Focus on signage vocabulary (not conversational phrases)
 - Ensure accurate kanji breakdowns for learning individual characters
-- Return only the markdown table, no additional text
+- Return only valid JSON array, no additional text or formatting
