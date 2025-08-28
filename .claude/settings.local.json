@@ -15,7 +15,9 @@
       "Bash(act:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm ls:*)"
+      "Bash(pnpm ls:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -96,7 +96,7 @@ export class LlmService {
     }
 
     if (!this.kanjiPromptTemplate) {
-      const kanjiPath = join(process.cwd(), 'resources', 'prompts', 'individual-kanji.txt')
+      const kanjiPath = join(process.cwd(), 'resources', 'prompts', 'kanji.txt')
       this.kanjiPromptTemplate = await readFile(kanjiPath, 'utf-8')
     }
   }

@@ -19,18 +19,18 @@ CREATE TABLE "Phrase" (
 );
 
 -- CreateTable
-CREATE TABLE "IndividualKanji" (
+CREATE TABLE "Kanji" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "englishMeaning" TEXT NOT NULL,
     "kanji" TEXT NOT NULL,
     "phoneticKana" TEXT NOT NULL,
     "phoneticRomaji" TEXT NOT NULL,
     "queryId" INTEGER NOT NULL,
-    CONSTRAINT "IndividualKanji_queryId_fkey" FOREIGN KEY ("queryId") REFERENCES "Query" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Kanji_queryId_fkey" FOREIGN KEY ("queryId") REFERENCES "Query" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Phrase_kanji_queryId_key" ON "Phrase"("kanji", "queryId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "IndividualKanji_kanji_key" ON "IndividualKanji"("kanji");
+CREATE UNIQUE INDEX "Kanji_kanji_key" ON "Kanji"("kanji");
