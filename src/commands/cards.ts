@@ -3,7 +3,6 @@ import { PrismaClient } from '../generated/prisma'
 import { consolidate } from '../lib/consolidation'
 import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
-import { isClaudeCodeContext } from '../lib/environment'
 import { exportToCSV } from '../lib/export'
 import { createLlmService } from '../lib/llm'
 import { log } from '../lib/logger'
@@ -142,9 +141,7 @@ export default class Cards extends Command {
       displayCards({ phrases, kanji })
 
       // Export to CSV
-      const shouldNotOpen =
-        flags['no-open'] || isClaudeCodeContext() || process.env.NODE_ENV === 'test'
-      await exportToCSV({ phrases, kanji }, !shouldNotOpen)
+      await exportToCSV({ phrases, kanji }, !flags['no-open'])
 
       log.info({ phrases: phrases.length, kanji: kanji.length }, 'Successfully generated cards')
 
