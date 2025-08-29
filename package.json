@@ -12,7 +12,10 @@
     "test:watch": "vitest --watch",
     "lint": "biome check src",
     "lint:fix": "biome check --fix src && prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cards": "tsx src/index.ts cards",
+    "recall": "tsx src/index.ts recall",
+    "delete": "tsx src/index.ts delete"
   },
   "bin": {
     "cardo": "./dist/index.js"

@@ -2,24 +2,12 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Bash(pnpm init:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm @biomejs/biome:*)",
-      "Bash(pnpm prisma:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(DATABASE_URL=\"file:./tmp/test.db\" pnpm prisma db push)",
+      "Bash(pnpm:*)",
       "Bash(sqlite3:*)",
-      "Bash(pnpm vitest run:*)",
       "Bash(act:*)",
-      "Bash(pnpm typecheck:*)",
-      "Bash(pnpm build:*)",
-      "Bash(pnpm ls:*)",
       "Bash(mv:*)",
       "Bash(rm:*)",
-      "Bash(mkdir:*)",
-      "Bash(pnpm start:*)"
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []
