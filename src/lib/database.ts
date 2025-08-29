@@ -51,7 +51,8 @@ function getPrismaClient(): PrismaClient {
 }
 
 export interface CreateQueryData {
-  prompt: string
+  count: number
+  domain: string
 }
 
 export interface CreatePhraseData {

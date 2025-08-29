@@ -52,7 +52,7 @@ describe('cleanStreamingResponse', () => {
   it('returns original response for non-string input', () => {
     // @ts-expect-error - testing runtime behavior
     const response = null
-    expect(cleanStreamingResponse(response as any)).toBe(response)
+    expect(cleanStreamingResponse(response as unknown)).toBe(response)
   })
 
   it('cleans simple streaming format', () => {

@@ -6,7 +6,6 @@ import type { CardData } from './card'
  */
 export function displayCards(cardData: CardData): void {
   if (cardData.phrases.length > 0) {
-    console.log('\nPhrases:')
     const phrasesTable = new Table({
       title: 'Japanese Phrases',
       columns: [
@@ -32,7 +31,7 @@ export function displayCards(cardData: CardData): void {
   }
 
   if (cardData.kanji.length > 0) {
-    console.log('\nIndividual Kanji:')
+    console.log()
     const kanjiTable = new Table({
       title: 'Individual Kanji Characters',
       columns: [

@@ -19,14 +19,16 @@ describe('database', () => {
   describe('createQuery', () => {
     it('creates a new query', async () => {
       const queryData = {
-        prompt: 'Common train station signs',
+        count: 5,
+        domain: 'train stations',
       }
 
       const query = await createQuery(queryData)
 
       expect(query).toMatchObject({
         id: expect.any(Number),
-        prompt: 'Common train station signs',
+        count: 5,
+        domain: 'train stations',
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
       })
@@ -35,7 +37,7 @@ describe('database', () => {
 
   describe('getQueryWithCards', () => {
     it('returns query with related phrases and kanji', async () => {
-      const query = await createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ count: 3, domain: 'test' })
 
       await createPhrase({
         englishMeaning: 'Exit',
@@ -58,7 +60,8 @@ describe('database', () => {
 
       expect(result).toMatchObject({
         id: query.id,
-        prompt: 'Test query',
+        count: 3,
+        domain: 'test',
         phrases: [
           expect.objectContaining({
             kanji: '出口',
@@ -77,7 +80,7 @@ describe('database', () => {
 
   describe('createPhrases', () => {
     it('creates multiple phrases', async () => {
-      const query = await createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ count: 3, domain: 'test' })
 
       const phrases = [
         {
@@ -107,7 +110,7 @@ describe('database', () => {
 
   describe('kanjiExists', () => {
     it('returns true for existing kanji', async () => {
-      const query = await createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ count: 3, domain: 'test' })
 
       await createKanji({
         englishMeaning: 'exit',
@@ -129,7 +132,7 @@ describe('database', () => {
 
   describe('getExistingKanji', () => {
     it('returns only existing kanji from list', async () => {
-      const query = await createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ count: 3, domain: 'test' })
 
       await createKanji({
         englishMeaning: 'exit',
@@ -146,7 +149,7 @@ describe('database', () => {
 
   describe('deleteQuery', () => {
     it('deletes query and cascades to related data', async () => {
-      const query = await createQuery({ prompt: 'Test query' })
+      const query = await createQuery({ count: 3, domain: 'test' })
 
       await createPhrase({
         englishMeaning: 'Exit',

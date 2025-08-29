@@ -65,7 +65,8 @@ export default class Delete extends Command {
       // Show what will be deleted
       this.log(`\nDelete Query ${queryId}\n`)
       this.log(`Created: ${createdAt}`)
-      this.log(`Prompt: ${query.prompt}`)
+      this.log(`Domain: ${query.domain}`)
+      this.log(`Count: ${query.count}`)
       this.log(
         `Associated cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
       )
@@ -109,9 +110,7 @@ export default class Delete extends Command {
           where: { id: queryId },
         })
 
-        this.log(
-          `\nSuccessfully deleted query ${queryId}. Associated cards remain in database.`
-        )
+        this.log(`\nSuccessfully deleted query ${queryId}. Associated cards remain in database.`)
         log.info(
           `Deleted query ${queryId}, orphaned ${query._count.phrases} phrases and ${query._count.kanji} kanji`
         )

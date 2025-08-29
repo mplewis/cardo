@@ -48,11 +48,11 @@ describe('display', () => {
         [
           [
             "
-        📝 Phrases:",
+        Phrases:",
           ],
           [
             "
-        🈂️ Individual Kanji:",
+        Individual Kanji:",
           ],
         ]
       `)
@@ -70,7 +70,7 @@ describe('display', () => {
         [
           [
             "
-        📭 No cards found.",
+        No cards found.",
           ],
         ]
       `)
@@ -96,7 +96,7 @@ describe('display', () => {
         [
           [
             "
-        📝 Phrases:",
+        Phrases:",
           ],
         ]
       `)

@@ -1,4 +1,5 @@
 import { Args, Command, Flags } from '@oclif/core'
+import { Table } from 'console-table-printer'
 import { type Kanji, type Phrase, PrismaClient } from '../generated/prisma'
 import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
@@ -107,18 +108,31 @@ export default class Recall extends Command {
           return
         }
 
-        this.log('\nAvailable Queries:\n')
+        const queriesTable = new Table({
+          title: 'Available Queries',
+          columns: [
+            { name: 'id', title: 'ID', alignment: 'right' },
+            { name: 'created', title: 'Created', alignment: 'left' },
+            { name: 'domain', title: 'Domain', alignment: 'left' },
+            { name: 'count', title: 'Count', alignment: 'right' },
+            { name: 'phrases', title: 'Phrases', alignment: 'right' },
+            { name: 'kanji', title: 'Kanji', alignment: 'right' },
+          ],
+        })
 
         for (const query of queries) {
           const createdAt = new Date(query.createdAt).toLocaleString()
-          this.log(`ID: ${query.id}`)
-          this.log(`   Created: ${createdAt}`)
-          this.log(`   Prompt: ${query.prompt}`)
-          this.log(
-            `   Cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
-          )
-          this.log('')
+          queriesTable.addRow({
+            id: query.id,
+            created: createdAt,
+            domain: query.domain,
+            count: query.count,
+            phrases: query._count.phrases,
+            kanji: query._count.kanji,
+          })
         }
+
+        queriesTable.printTable()
         await db.$disconnect()
         return
       }
@@ -145,13 +159,6 @@ export default class Recall extends Command {
 
         const duplicatePhrases = allPhrases.length - phrases.length
         const duplicateKanji = allKanji.length - kanji.length
-
-        this.log('\nAll Japanese Kanji Flashcards\n')
-        if (duplicatePhrases > 0 || duplicateKanji > 0) {
-          this.log(
-            `Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)\n`
-          )
-        }
         displayCards({ phrases, kanji })
 
         if (flags.export) {
@@ -219,12 +226,8 @@ export default class Recall extends Command {
       const createdAt = new Date(query.createdAt).toLocaleString()
       this.log(`\nFlashcards from Query ID ${queryId}\n`)
       this.log(`Created: ${createdAt}`)
-      this.log(`Prompt: ${query.prompt}`)
-      if (duplicatePhrases > 0 || duplicateKanji > 0) {
-        this.log(
-          `Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)`
-        )
-      }
+      this.log(`Domain: ${query.domain}`)
+      this.log(`Count: ${query.count}`)
       this.log('')
 
       displayCards({ phrases, kanji })

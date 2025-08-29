@@ -1,7 +1,8 @@
 -- CreateTable
 CREATE TABLE "Query" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "prompt" TEXT NOT NULL,
+    "count" INTEGER NOT NULL,
+    "domain" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );

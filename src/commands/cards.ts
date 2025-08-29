@@ -90,7 +90,8 @@ export default class Cards extends Command {
       // Save to database and consolidate
       const query = await db.query.create({
         data: {
-          prompt: `Generate ${count} phrases for domain: "${domain}"`,
+          count,
+          domain,
         },
       })
 
