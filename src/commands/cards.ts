@@ -1,7 +1,6 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { PrismaClient } from '../generated/prisma'
+import { withDatabaseCommand } from '../lib/command-utils'
 import { consolidate } from '../lib/consolidation'
-import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
 import { exportToCSV } from '../lib/export'
 import { createLlmService } from '../lib/llm'
@@ -63,94 +62,87 @@ export default class Cards extends Command {
     log.info({ count, domain }, 'Starting card generation')
 
     try {
-      // Initialize database
-      await initializeDatabase()
-      const db = new PrismaClient()
+      await withDatabaseCommand('generate cards', async (db) => {
+        // Create LLM service
+        const llmService = createLlmService()
 
-      // Create LLM service
-      const llmService = createLlmService()
+        // Get existing phrases to exclude (default behavior, unless --include-known is set)
+        let knownPhrases: string[] = []
+        if (!flags['include-known']) {
+          const existingPhrases = await db.phrase.findMany({
+            select: { kanji: true },
+          })
+          knownPhrases = existingPhrases.map((p) => p.kanji)
 
-      // Get existing phrases to exclude (default behavior, unless --include-known is set)
-      let knownPhrases: string[] = []
-      if (!flags['include-known']) {
-        const existingPhrases = await db.phrase.findMany({
-          select: { kanji: true },
-        })
-        knownPhrases = existingPhrases.map((p) => p.kanji)
-
-        if (knownPhrases.length > 0) {
-          log.info({ count: knownPhrases.length }, 'Found existing phrases to exclude')
+          if (knownPhrases.length > 0) {
+            log.info({ count: knownPhrases.length }, 'Found existing phrases to exclude')
+          }
+        } else {
+          this.log('Including previously generated phrases (--include-known enabled)')
         }
-      } else {
-        this.log('Including previously generated phrases (--include-known enabled)')
-      }
 
-      // Generate phrases using LLM
-      const rawPhrases = await llmService.generatePhrases(domain, count, knownPhrases)
+        // Generate phrases using LLM
+        const rawPhrases = await llmService.generatePhrases(domain, count, knownPhrases)
 
-      if (rawPhrases.length === 0) {
-        this.warn('No phrases were generated. Please try again with a different domain.')
-        return
-      }
+        if (rawPhrases.length === 0) {
+          this.warn('No phrases were generated. Please try again with a different domain.')
+          return
+        }
 
-      // Save to database and consolidate
-      const query = await db.query.create({
-        data: {
-          count,
-          domain,
-        },
-      })
-
-      const queryId = query.id
-
-      // Save phrases to database
-      for (const phrase of rawPhrases) {
-        await db.phrase.create({
+        // Save to database and consolidate
+        const query = await db.query.create({
           data: {
-            ...phrase,
-            queryId,
+            count,
+            domain,
           },
         })
-      }
 
-      // Run consolidation to extract individual kanji
-      const consolidated = await consolidate(rawPhrases)
+        const queryId = query.id
 
-      // Save individual kanji to database
-      for (const kanji of consolidated.kanji) {
-        await db.kanji.create({
-          data: {
-            ...kanji,
-            queryId,
-          },
+        // Save phrases to database
+        for (const phrase of rawPhrases) {
+          await db.phrase.create({
+            data: {
+              ...phrase,
+              queryId,
+            },
+          })
+        }
+
+        // Run consolidation to extract individual kanji
+        const consolidated = await consolidate(rawPhrases)
+
+        // Save individual kanji to database
+        for (const kanji of consolidated.kanji) {
+          await db.kanji.create({
+            data: {
+              ...kanji,
+              queryId,
+            },
+          })
+        }
+
+        // Fetch consolidated data for display
+        const phrases = await db.phrase.findMany({
+          where: { queryId },
+          orderBy: { id: 'asc' },
         })
-      }
 
-      // Fetch consolidated data for display
-      const phrases = await db.phrase.findMany({
-        where: { queryId },
-        orderBy: { id: 'asc' },
+        const kanji = await db.kanji.findMany({
+          where: { queryId },
+          orderBy: { id: 'asc' },
+        })
+
+        // Display in terminal
+        displayCards({ phrases, kanji })
+
+        // Export to CSV
+        await exportToCSV({ phrases, kanji }, !flags['no-open'])
+
+        log.info({ phrases: phrases.length, kanji: kanji.length }, 'Successfully generated cards')
       })
-
-      const kanji = await db.kanji.findMany({
-        where: { queryId },
-        orderBy: { id: 'asc' },
-      })
-
-      // Display in terminal
-      displayCards({ phrases, kanji })
-
-      // Export to CSV
-      await exportToCSV({ phrases, kanji }, !flags['no-open'])
-
-      log.info({ phrases: phrases.length, kanji: kanji.length }, 'Successfully generated cards')
-
-      await db.$disconnect()
     } catch (error) {
-      log.error({ error }, 'Failed to generate cards')
-      this.error(
-        `Failed to generate cards: ${error instanceof Error ? error.message : String(error)}`
-      )
+      this.error(error instanceof Error ? error.message : String(error))
     }
   }
 }
