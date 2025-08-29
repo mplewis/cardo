@@ -43,8 +43,9 @@ function deduplicateKanji(kanji: Kanji[]): Kanji[] {
  */
 export default class Recall extends Command {
   static override args = {
-    queryId: Args.integer({
-      description: 'query ID to recall (use --list to see available queries)',
+    queryIdOrSearch: Args.string({
+      description:
+        'query ID to recall or search term to find queries by domain (use --list to see available queries)',
       required: false,
     }),
   }
@@ -56,6 +57,8 @@ export default class Recall extends Command {
     '<%= config.bin %> <%= command.id %> --all',
     '<%= config.bin %> <%= command.id %> 1',
     '<%= config.bin %> <%= command.id %> 3 --export',
+    '<%= config.bin %> <%= command.id %> food',
+    '<%= config.bin %> <%= command.id %> restaurant --export',
   ]
 
   static override flags = {
@@ -82,7 +85,7 @@ export default class Recall extends Command {
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Recall)
-    const { queryId } = args
+    const { queryIdOrSearch } = args
 
     try {
       await initializeDatabase()
@@ -91,10 +94,7 @@ export default class Recall extends Command {
       // Handle --list flag
       if (flags.list) {
         const queries = await db.query.findMany({
-          orderBy: [
-            { domain: 'asc' },
-            { createdAt: 'desc' }
-          ],
+          orderBy: [{ domain: 'asc' }, { createdAt: 'desc' }],
           include: {
             _count: {
               select: {
@@ -179,73 +179,156 @@ export default class Recall extends Command {
         return
       }
 
-      // Handle specific query ID
-      if (!queryId) {
+      // Handle specific query ID or search term
+      if (!queryIdOrSearch) {
         this.error(
-          'Please provide a query ID, or use --list to see available queries, or --all for all cards'
+          'Please provide a query ID or search term, or use --list to see available queries, or --all for all cards'
         )
       }
 
-      // Check if query exists
-      const query = await db.query.findUnique({
-        where: { id: queryId },
-        include: {
-          _count: {
-            select: {
-              phrases: true,
-              kanji: true,
+      // Determine if input is a numeric ID or search term
+      const isNumeric = /^\d+$/.test(queryIdOrSearch)
+
+      if (isNumeric) {
+        // Handle specific query ID
+        const queryId = parseInt(queryIdOrSearch, 10)
+
+        // Check if query exists
+        const query = await db.query.findUnique({
+          where: { id: queryId },
+          include: {
+            _count: {
+              select: {
+                phrases: true,
+                kanji: true,
+              },
             },
           },
-        },
-      })
+        })
 
-      if (!query) {
-        this.error(`Query with ID ${queryId} not found. Use --list to see available queries.`)
-      }
-
-      const allPhrases = await db.phrase.findMany({
-        where: { queryId },
-        orderBy: { id: 'asc' },
-      })
-
-      const allKanji = await db.kanji.findMany({
-        where: { queryId },
-        orderBy: { id: 'asc' },
-      })
-
-      if (allPhrases.length === 0 && allKanji.length === 0) {
-        this.log(`No cards found for query ID ${queryId}.`)
-        await db.$disconnect()
-        return
-      }
-
-      // Deduplicate by kanji, keeping earliest created
-      const phrases = deduplicatePhrases(allPhrases)
-      const kanji = deduplicateKanji(allKanji)
-
-      const duplicatePhrases = allPhrases.length - phrases.length
-      const duplicateKanji = allKanji.length - kanji.length
-
-      const createdAt = new Date(query.createdAt).toLocaleString()
-      this.log(`\nFlashcards from Query ID ${queryId}\n`)
-      this.log(`Created: ${createdAt}`)
-      this.log(`Domain: ${query.domain}`)
-      this.log(`Count: ${query.count}`)
-      this.log('')
-
-      displayCards({ phrases, kanji })
-
-      if (flags.export) {
-        const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
-        this.log(`\nCSV files exported to: ${result.tempDir}`)
-        if (!flags['no-open']) {
-          this.log('CSV files opened automatically')
+        if (!query) {
+          this.error(`Query with ID ${queryId} not found. Use --list to see available queries.`)
         }
-      }
 
-      log.info(
-        `Recalled query ${queryId}: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
-      )
+        const allPhrases = await db.phrase.findMany({
+          where: { queryId },
+          orderBy: { id: 'asc' },
+        })
+
+        const allKanji = await db.kanji.findMany({
+          where: { queryId },
+          orderBy: { id: 'asc' },
+        })
+
+        if (allPhrases.length === 0 && allKanji.length === 0) {
+          this.log(`No cards found for query ID ${queryId}.`)
+          await db.$disconnect()
+          return
+        }
+
+        // Deduplicate by kanji, keeping earliest created
+        const phrases = deduplicatePhrases(allPhrases)
+        const kanji = deduplicateKanji(allKanji)
+
+        const duplicatePhrases = allPhrases.length - phrases.length
+        const duplicateKanji = allKanji.length - kanji.length
+
+        const createdAt = new Date(query.createdAt).toLocaleString()
+        this.log(`\nFlashcards from Query ID ${queryId}\n`)
+        this.log(`Created: ${createdAt}`)
+        this.log(`Domain: ${query.domain}`)
+        this.log(`Count: ${query.count}`)
+        this.log('')
+
+        displayCards({ phrases, kanji })
+
+        if (flags.export) {
+          const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
+          this.log(`\nCSV files exported to: ${result.tempDir}`)
+          if (!flags['no-open']) {
+            this.log('CSV files opened automatically')
+          }
+        }
+
+        log.info(
+          `Recalled query ${queryId}: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
+        )
+      } else {
+        // Handle search term - find queries with matching domains
+        const searchTerm = queryIdOrSearch.toLowerCase()
+
+        const matchingQueries = await db.query.findMany({
+          where: {
+            domain: {
+              contains: searchTerm,
+            },
+          },
+          orderBy: [{ domain: 'asc' }, { createdAt: 'desc' }],
+          include: {
+            _count: {
+              select: {
+                phrases: true,
+                kanji: true,
+              },
+            },
+          },
+        })
+
+        if (matchingQueries.length === 0) {
+          this.log(
+            `No queries found with domain containing "${queryIdOrSearch}". Use --list to see available queries.`
+          )
+          await db.$disconnect()
+          return
+        }
+
+        // Get all phrases and kanji from matching queries
+        const queryIds = matchingQueries.map((q) => q.id)
+
+        const allPhrases = await db.phrase.findMany({
+          where: { queryId: { in: queryIds } },
+          orderBy: [{ queryId: 'desc' }, { id: 'asc' }],
+        })
+
+        const allKanji = await db.kanji.findMany({
+          where: { queryId: { in: queryIds } },
+          orderBy: [{ queryId: 'desc' }, { id: 'asc' }],
+        })
+
+        // Deduplicate by kanji, keeping earliest created
+        const phrases = deduplicatePhrases(allPhrases)
+        const kanji = deduplicateKanji(allKanji)
+
+        const duplicatePhrases = allPhrases.length - phrases.length
+        const duplicateKanji = allKanji.length - kanji.length
+
+        this.log(`\nFlashcards matching "${queryIdOrSearch}"\n`)
+        this.log(`Found ${matchingQueries.length} matching queries:`)
+        for (const query of matchingQueries) {
+          const createdAt = new Date(query.createdAt).toLocaleString()
+          this.log(`  • Query ${query.id}: ${query.domain} (${createdAt})`)
+        }
+        if (duplicatePhrases > 0 || duplicateKanji > 0) {
+          this.log(
+            `\nDeduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)`
+          )
+        }
+        this.log('')
+
+        displayCards({ phrases, kanji })
+
+        if (flags.export) {
+          const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
+          this.log(`\nCSV files exported to: ${result.tempDir}`)
+          if (!flags['no-open']) {
+            this.log('CSV files opened automatically')
+          }
+        }
+
+        log.info(
+          `Recalled search "${queryIdOrSearch}": ${phrases.length} unique phrases and ${kanji.length} unique individual kanji from ${matchingQueries.length} queries (${duplicatePhrases + duplicateKanji} duplicates removed)`
+        )
+      }
       await db.$disconnect()
     } catch (error) {
       log.error({ error }, 'Failed to recall cards')

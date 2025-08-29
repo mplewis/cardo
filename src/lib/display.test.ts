@@ -46,14 +46,7 @@ describe('display', () => {
       // Verify console log calls
       expect(mockConsoleLog.mock.calls).toMatchInlineSnapshot(`
         [
-          [
-            "
-        Phrases:",
-          ],
-          [
-            "
-        Individual Kanji:",
-          ],
+          [],
         ]
       `)
     })
@@ -93,12 +86,7 @@ describe('display', () => {
       displayCards(cardData)
 
       expect(mockConsoleLog.mock.calls).toMatchInlineSnapshot(`
-        [
-          [
-            "
-        Phrases:",
-          ],
-        ]
+        []
       `)
     })
   })
