@@ -83,7 +83,7 @@ export async function consolidate(rawData: RawLlmResponse[]): Promise<Consolidat
 
   // Step 5: Query LLM for missing kanji meanings
   if (kanjiNeedingLookup.length > 0) {
-    log.info(`Querying LLM for meanings of ${kanjiNeedingLookup.length} kanji`)
+    log.info({ count: kanjiNeedingLookup.length }, 'Querying LLM for meanings of kanji')
     try {
       const llmService = createLlmService()
       const llmKanjiData = await llmService.generateKanjiMeanings(kanjiNeedingLookup)

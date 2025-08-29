@@ -32,13 +32,13 @@ export async function exportToCSV(cards: CardData, autoOpen = false): Promise<Ex
   const phrasesPath = join(tempDir, 'phrases.csv')
   const phrasesCSV = convertPhrasesToCSV(cards.phrases)
   writeFileSync(phrasesPath, phrasesCSV, 'utf-8')
-  log.debug(`Wrote phrases CSV to ${phrasesPath}`)
+  log.debug({ path: phrasesPath }, 'Wrote phrases CSV')
 
   // Export individual kanji
   const kanjiPath = join(tempDir, 'kanji.csv')
   const kanjiCSV = convertKanjiToCSV(cards.kanji)
   writeFileSync(kanjiPath, kanjiCSV, 'utf-8')
-  log.debug(`Wrote kanji CSV to ${kanjiPath}`)
+  log.debug({ path: kanjiPath }, 'Wrote kanji CSV')
 
   // Auto-open CSV files if requested (but not in test mode)
   if (autoOpen) {

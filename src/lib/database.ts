@@ -194,10 +194,8 @@ export async function initializeDatabase(): Promise<void> {
 
       child.on('close', (code) => {
         if (code === 0) {
-          log.info('Database schema migration completed successfully')
           resolve()
         } else {
-          log.error(`Migration failed with code ${code}`)
           reject(new Error(`Migration failed with code ${code}`))
         }
       })

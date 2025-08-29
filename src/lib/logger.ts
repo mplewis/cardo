@@ -14,7 +14,6 @@ function createLogger() {
           colorize: true,
           translateTime: 'HH:MM:ss',
           ignore: 'pid,hostname',
-          singleLine: true,
         },
       },
     })

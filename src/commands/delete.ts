@@ -92,7 +92,12 @@ export default class Delete extends Command {
 
         this.log(`\nSuccessfully deleted query ${queryId} and all associated cards.`)
         log.info(
-          `Deleted query ${queryId} with ${query._count.phrases} phrases and ${query._count.kanji} kanji`
+          {
+            queryId,
+            phrases: query._count.phrases,
+            kanji: query._count.kanji,
+          },
+          'Deleted query with associated data'
         )
       } else {
         // Delete only the query (this will orphan the cards)
@@ -112,7 +117,12 @@ export default class Delete extends Command {
 
         this.log(`\nSuccessfully deleted query ${queryId}. Associated cards remain in database.`)
         log.info(
-          `Deleted query ${queryId}, orphaned ${query._count.phrases} phrases and ${query._count.kanji} kanji`
+          {
+            queryId,
+            orphanedPhrases: query._count.phrases,
+            orphanedKanji: query._count.kanji,
+          },
+          'Deleted query, orphaned associated data'
         )
       }
 

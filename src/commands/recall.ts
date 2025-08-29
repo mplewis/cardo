@@ -177,7 +177,12 @@ export default class Recall extends Command {
         }
 
         log.info(
-          `Recalled all cards: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
+          {
+            phrases: phrases.length,
+            kanji: kanji.length,
+            duplicatesRemoved: duplicatePhrases + duplicateKanji,
+          },
+          'Recalled all cards'
         )
         await db.$disconnect()
         return
@@ -259,17 +264,29 @@ export default class Recall extends Command {
         }
 
         log.info(
-          `Recalled query ${queryId}: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
+          {
+            queryId,
+            phrases: phrases.length,
+            kanji: kanji.length,
+            duplicatesRemoved: duplicatePhrases + duplicateKanji,
+          },
+          'Recalled query'
         )
       } else {
         // Handle search term - find queries with matching domains
-        const searchTerm = queryIdOrSearch.toLowerCase()
+        // Split search into individual words for OR search
+        const searchWords = queryIdOrSearch
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((word) => word.length > 0)
 
         const matchingQueries = await db.query.findMany({
           where: {
-            domain: {
-              contains: searchTerm,
-            },
+            OR: searchWords.map((word) => ({
+              domain: {
+                contains: word,
+              },
+            })),
           },
           orderBy: [{ domain: 'asc' }, { createdAt: 'desc' }],
           include: {
@@ -338,7 +355,14 @@ export default class Recall extends Command {
         }
 
         log.info(
-          `Recalled search "${queryIdOrSearch}": ${phrases.length} unique phrases and ${kanji.length} unique individual kanji from ${matchingQueries.length} queries (${duplicatePhrases + duplicateKanji} duplicates removed)`
+          {
+            search: queryIdOrSearch,
+            phrases: phrases.length,
+            kanji: kanji.length,
+            matchingQueries: matchingQueries.length,
+            duplicatesRemoved: duplicatePhrases + duplicateKanji,
+          },
+          'Recalled search results'
         )
       }
       await db.$disconnect()

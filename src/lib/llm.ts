@@ -171,7 +171,7 @@ export class LlmService {
       prompt += exclusionText
     }
 
-    log.info(`Querying LLM for ${count} phrases in domain: ${domain}`)
+    log.info({ count, domain }, 'Querying LLM for phrases')
     log.debug({ prompt }, 'Prompt details')
 
     try {
@@ -194,7 +194,7 @@ export class LlmService {
       const cleanResponse = cleanStreamingResponse(response)
 
       const parsedData = this.parsePhrasesResponse(cleanResponse)
-      log.info(`Parsed ${parsedData.length} phrases from LLM response`)
+      log.info({ count: parsedData.length }, 'Parsed phrases from LLM response')
 
       return parsedData
     } catch (error) {
@@ -229,7 +229,7 @@ export class LlmService {
     const kanjiListString = kanjiList.join(', ')
     const prompt = this.kanjiPromptTemplate.replace('{{kanjiList}}', kanjiListString)
 
-    log.info(`Querying LLM for meanings of ${kanjiList.length} kanji: ${kanjiListString}`)
+    log.info({ count: kanjiList.length, kanji: kanjiListString }, 'Querying LLM for kanji meanings')
     log.debug({ prompt }, 'Prompt details')
 
     try {
@@ -251,7 +251,7 @@ export class LlmService {
 
       const cleanResponse = cleanStreamingResponse(response)
       const parsedData = this.parseKanjiResponse(cleanResponse)
-      log.info(`Parsed ${parsedData.length} kanji meanings from LLM response`)
+      log.info({ count: parsedData.length }, 'Parsed kanji meanings from LLM response')
 
       return parsedData
     } catch (error) {

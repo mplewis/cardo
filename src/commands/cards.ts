@@ -61,7 +61,7 @@ export default class Cards extends Command {
       )
     }
 
-    log.info(`Starting card generation for ${count} phrases in domain: "${domain}"`)
+    log.info({ count, domain }, 'Starting card generation')
 
     try {
       // Initialize database
@@ -80,7 +80,7 @@ export default class Cards extends Command {
         knownPhrases = existingPhrases.map((p) => p.kanji)
 
         if (knownPhrases.length > 0) {
-          log.info(`Found ${knownPhrases.length} existing phrases to exclude`)
+          log.info({ count: knownPhrases.length }, 'Found existing phrases to exclude')
         }
       } else {
         this.log('Including previously generated phrases (--include-known enabled)')
@@ -146,9 +146,7 @@ export default class Cards extends Command {
         flags['no-open'] || isClaudeCodeContext() || process.env.NODE_ENV === 'test'
       await exportToCSV({ phrases, kanji }, !shouldNotOpen)
 
-      log.info(
-        `Successfully generated ${phrases.length} phrases and ${kanji.length} individual kanji`
-      )
+      log.info({ phrases: phrases.length, kanji: kanji.length }, 'Successfully generated cards')
 
       await db.$disconnect()
     } catch (error) {

@@ -6,5 +6,6 @@ Agent: Perform items in this checklist from top to bottom. After each item, run 
 - [x] Allow cards and recall to accept freeform text without quotes, i.e. `pnpm cards 1 train station`
 - [x] When running in a Claude Code context, implicitly activate the --no-open functionality
 - [x] Invert --exclude-known to DEFAULT to excluding known. REMOVE the flag and REPLACE it with --include-known which OMITS the "don't include these phrases" text in the prompt.
-- [ ] For freeform list queries search, OR all words, i.e. `cardo recall train station eki` recalls every phrase with train, station, OR eki in it
+- [x] For freeform list queries search, OR all words, i.e. `cardo recall train station eki` recalls every phrase with train, station, OR eki in it
+- [ ] On failure to parse LLM JSON response, print the entire (cleaned and concatenated) response for review
 - [ ] Review all structlog log lines (pino) and use structured logging for all values, NOT interpolation. i.e. "Generated 5 cards and 3 kanji" => "Generated cards" + {cards: 5, kanji: 3}
