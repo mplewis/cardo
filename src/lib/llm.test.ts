@@ -136,7 +136,7 @@ describe('LlmService', () => {
           phoneticKana: 'で',
           phoneticRomaji: 'de',
           kanjiBreakdown: 'Single character kanji',
-        }
+        },
       ])
 
       expect(mockClient.createChatCompletionNonStreaming).toHaveBeenCalled()

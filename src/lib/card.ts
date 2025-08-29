@@ -1,4 +1,5 @@
 import { consolidate, type PhrasesResponse } from './consolidation'
+import { mapDbKanjiToCardData, mapDbPhrasesToCardData } from './data-utils'
 import {
   createKanjis,
   createPhrases,
@@ -62,21 +63,8 @@ export async function generateCards(
   const queryWithCards = await getQueryWithCards(queryId)
 
   return {
-    phrases:
-      queryWithCards?.phrases.map((p) => ({
-        englishMeaning: p.englishMeaning,
-        kanji: p.kanji,
-        phoneticKana: p.phoneticKana,
-        phoneticRomaji: p.phoneticRomaji,
-        kanjiBreakdown: p.kanjiBreakdown,
-      })) || [],
-    kanji:
-      queryWithCards?.kanji.map((k) => ({
-        englishMeaning: k.englishMeaning,
-        kanji: k.kanji,
-        phoneticKana: k.phoneticKana,
-        phoneticRomaji: k.phoneticRomaji,
-      })) || [],
+    phrases: queryWithCards?.phrases ? mapDbPhrasesToCardData(queryWithCards.phrases) : [],
+    kanji: queryWithCards?.kanji ? mapDbKanjiToCardData(queryWithCards.kanji) : [],
   }
 }
 
@@ -85,21 +73,8 @@ export async function getCardsForQuery(queryId: number): Promise<CardData> {
   const queryWithCards = await getQueryWithCards(queryId)
 
   return {
-    phrases:
-      queryWithCards?.phrases.map((p) => ({
-        englishMeaning: p.englishMeaning,
-        kanji: p.kanji,
-        phoneticKana: p.phoneticKana,
-        phoneticRomaji: p.phoneticRomaji,
-        kanjiBreakdown: p.kanjiBreakdown,
-      })) || [],
-    kanji:
-      queryWithCards?.kanji.map((k) => ({
-        englishMeaning: k.englishMeaning,
-        kanji: k.kanji,
-        phoneticKana: k.phoneticKana,
-        phoneticRomaji: k.phoneticRomaji,
-      })) || [],
+    phrases: queryWithCards?.phrases ? mapDbPhrasesToCardData(queryWithCards.phrases) : [],
+    kanji: queryWithCards?.kanji ? mapDbKanjiToCardData(queryWithCards.kanji) : [],
   }
 }
 
@@ -108,19 +83,8 @@ export async function getAllCards(): Promise<CardData> {
   const [phrases, kanji] = await Promise.all([getAllPhrases(), getAllKanji()])
 
   return {
-    phrases: phrases.map((p) => ({
-      englishMeaning: p.englishMeaning,
-      kanji: p.kanji,
-      phoneticKana: p.phoneticKana,
-      phoneticRomaji: p.phoneticRomaji,
-      kanjiBreakdown: p.kanjiBreakdown,
-    })),
-    kanji: kanji.map((k) => ({
-      englishMeaning: k.englishMeaning,
-      kanji: k.kanji,
-      phoneticKana: k.phoneticKana,
-      phoneticRomaji: k.phoneticRomaji,
-    })),
+    phrases: mapDbPhrasesToCardData(phrases),
+    kanji: mapDbKanjiToCardData(kanji),
   }
 }
 

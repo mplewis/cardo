@@ -1,43 +1,11 @@
 import { Command, Flags } from '@oclif/core'
 import { Table } from 'console-table-printer'
-import type { Kanji, Phrase } from '../generated/prisma'
 import { withDatabaseCommand } from '../lib/command-utils'
+import { deduplicateKanji, deduplicatePhrases } from '../lib/data-utils'
 import { displayCards } from '../lib/display'
 import { isClaudeCodeContext } from '../lib/environment'
 import { exportToCSV } from '../lib/export'
 import { log } from '../lib/logger'
-
-/**
- * Deduplicate phrases by kanji, keeping the earliest created (lowest ID)
- */
-function deduplicatePhrases(phrases: Phrase[]): Phrase[] {
-  const seen = new Map<string, Phrase>()
-
-  for (const phrase of phrases) {
-    const existing = seen.get(phrase.kanji)
-    if (!existing || phrase.id < existing.id) {
-      seen.set(phrase.kanji, phrase)
-    }
-  }
-
-  return Array.from(seen.values()).sort((a, b) => a.id - b.id)
-}
-
-/**
- * Deduplicate individual kanji by kanji character, keeping the earliest created (lowest ID)
- */
-function deduplicateKanji(kanji: Kanji[]): Kanji[] {
-  const seen = new Map<string, Kanji>()
-
-  for (const k of kanji) {
-    const existing = seen.get(k.kanji)
-    if (!existing || k.id < existing.id) {
-      seen.set(k.kanji, k)
-    }
-  }
-
-  return Array.from(seen.values()).sort((a, b) => a.id - b.id)
-}
 
 /**
  * Recall and display previously generated flashcards
