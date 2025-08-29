@@ -27,10 +27,15 @@ export default class Cards extends Command {
   static override examples = [
     '<%= config.bin %> <%= command.id %> 10 "train stations"',
     '<%= config.bin %> <%= command.id %> 5 "restaurants"',
-    '<%= config.bin %> <%= command.id %> 15 "shopping"',
+    '<%= config.bin %> <%= command.id %> 15 "shopping" --exclude-known',
   ]
 
   static override flags = {
+    'exclude-known': Flags.boolean({
+      char: 'x',
+      description: 'exclude previously generated phrases to ensure only new phrases are created',
+      default: false,
+    }),
     'no-open': Flags.boolean({
       description: 'do not automatically open CSV files after generation',
       default: false,
@@ -60,8 +65,22 @@ export default class Cards extends Command {
       // Create LLM service
       const llmService = createLlmService()
 
+      // Get existing phrases if exclude-known flag is set
+      let knownPhrases: string[] = []
+      if (flags['exclude-known']) {
+        const existingPhrases = await db.phrase.findMany({
+          select: { kanji: true },
+        })
+        knownPhrases = existingPhrases.map((p) => p.kanji)
+
+        if (knownPhrases.length > 0) {
+          this.log(`📋 Excluding ${knownPhrases.length} known phrases from generation`)
+          log.info(`Found ${knownPhrases.length} existing phrases to exclude`)
+        }
+      }
+
       // Generate phrases using LLM
-      const rawPhrases = await llmService.generatePhrases(domain, count)
+      const rawPhrases = await llmService.generatePhrases(domain, count, knownPhrases)
 
       if (rawPhrases.length === 0) {
         this.warn('No phrases were generated. Please try again with a different domain.')

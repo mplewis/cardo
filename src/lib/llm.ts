@@ -51,6 +51,52 @@ const phrasesArraySchema = z.array(phraseSchema)
 const kanjiArraySchema = z.array(kanjiSchema)
 
 /**
+ * Clean up streaming response format from any-llm library
+ * Handles responses that come in format: 0:"content" chunks
+ */
+function cleanStreamingResponse(response: string): string {
+  if (typeof response !== 'string' || !response.includes('0:"')) {
+    return response
+  }
+
+  // Find each chunk starting with 0:" and ending with "
+  const chunks = []
+  let pos = 0
+
+  while (pos < response.length) {
+    const start = response.indexOf('0:"', pos)
+    if (start === -1) break
+
+    const contentStart = start + 3 // Skip '0:"'
+
+    // Find the closing quote, but skip over any escaped quotes (\")
+    let end = contentStart
+    while (end < response.length) {
+      const nextQuote = response.indexOf('"', end)
+      if (nextQuote === -1) break
+
+      // Check if this quote is escaped
+      if (response[nextQuote - 1] === '\\') {
+        end = nextQuote + 1 // Skip this escaped quote
+      } else {
+        end = nextQuote // Found the real closing quote
+        break
+      }
+    }
+
+    if (end >= response.length) break
+
+    // Extract content and unescape quotes
+    const content = response.slice(contentStart, end)
+    chunks.push(content.replace(/\\"/g, '"'))
+
+    pos = end + 1
+  }
+
+  return chunks.join('').replace(/\\n/g, '\n').replace(/\\t/g, '\t')
+}
+
+/**
  * Service for interacting with LLMs to generate Japanese kanji cards
  */
 export class LlmService {
@@ -104,16 +150,26 @@ export class LlmService {
   /**
    * Generate Japanese phrases based on domain and count
    */
-  async generatePhrases(domain: string, count: number): Promise<RawLlmResponse[]> {
+  async generatePhrases(
+    domain: string,
+    count: number,
+    excludePhrases: string[] = []
+  ): Promise<RawLlmResponse[]> {
     await this.loadPromptTemplates()
 
     if (!this.phrasesPromptTemplate) {
       throw new Error('Failed to load phrases prompt template')
     }
 
-    const prompt = this.phrasesPromptTemplate
+    let prompt = this.phrasesPromptTemplate
       .replace('{{count}}', count.toString())
       .replace('{{domain}}', domain)
+
+    // Add exclusion list if provided
+    if (excludePhrases.length > 0) {
+      const exclusionText = `\n\nIMPORTANT: Do NOT include any of these existing phrases in your response:\n${excludePhrases.join(', ')}\n\nGenerate completely NEW phrases that are different from the ones listed above.`
+      prompt += exclusionText
+    }
 
     log.info(`Querying LLM for ${count} phrases in domain: ${domain}`)
     log.debug({ prompt }, 'Prompt details')
@@ -134,52 +190,8 @@ export class LlmService {
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
       log.debug({ response }, 'Raw LLM response')
-      console.log('=== RAW LLM RESPONSE ===')
-      console.log(response)
-      console.log('=== END RAW LLM RESPONSE ===')
 
-      // Clean up streaming format if needed
-      let cleanResponse = response
-      if (typeof response === 'string' && response.includes('0:"')) {
-        // Find each chunk starting with 0:" and ending with "
-        const chunks = []
-        let pos = 0
-
-        while (pos < response.length) {
-          const start = response.indexOf('0:"', pos)
-          if (start === -1) break
-
-          const contentStart = start + 3 // Skip '0:"'
-
-          // Find the closing quote, but skip over any escaped quotes (\")
-          let end = contentStart
-          while (end < response.length) {
-            const nextQuote = response.indexOf('"', end)
-            if (nextQuote === -1) break
-
-            // Check if this quote is escaped
-            if (response[nextQuote - 1] === '\\') {
-              end = nextQuote + 1 // Skip this escaped quote
-            } else {
-              end = nextQuote // Found the real closing quote
-              break
-            }
-          }
-
-          if (end >= response.length) break
-
-          // Extract content and unescape quotes
-          const content = response.slice(contentStart, end)
-          chunks.push(content.replace(/\\"/g, '"'))
-
-          pos = end + 1
-        }
-
-        cleanResponse = chunks.join('')
-      }
-      console.log('=== CLEANED LLM RESPONSE ===')
-      console.log(cleanResponse)
-      console.log('=== END CLEANED LLM RESPONSE ===')
+      const cleanResponse = cleanStreamingResponse(response)
 
       const parsedData = this.parsePhrasesResponse(cleanResponse)
       log.info(`Parsed ${parsedData.length} phrases from LLM response`)
@@ -237,7 +249,8 @@ export class LlmService {
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
       log.debug({ response }, 'Raw LLM response')
 
-      const parsedData = this.parseKanjiResponse(response)
+      const cleanResponse = cleanStreamingResponse(response)
+      const parsedData = this.parseKanjiResponse(cleanResponse)
       log.info(`Parsed ${parsedData.length} kanji meanings from LLM response`)
 
       return parsedData

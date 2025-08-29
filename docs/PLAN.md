@@ -50,18 +50,18 @@
 
 ## Phase 6: CLI Commands
 
-- [ ] Implement `cards` command
-  - [ ] Accept count and domain parameters
-  - [ ] Generate and display terminal-formatted tables
-  - [ ] Save CSV files to temp directory
-  - [ ] Auto-open CSV files for user
-- [ ] Implement `recall` command
-  - [ ] `--all` flag for all cards
-  - [ ] `--list` flag for query history
-  - [ ] Query by ID functionality
-- [ ] Implement `delete` command
-  - [ ] Delete by query ID
-  - [ ] `--with-cards` flag to delete associated cards
-- [ ] Implement help documentation
-- [ ] Add input validation
-- [ ] Add tests
+- [x] Implement `cards` command
+  - [x] Accept count and domain parameters
+  - [x] Generate and display terminal-formatted tables
+  - [x] Save CSV files to temp directory
+  - [x] Auto-open CSV files for user
+- [x] Implement `recall` command
+  - [x] `--all` flag for all cards
+  - [x] `--list` flag for query history
+  - [x] Query by ID functionality
+- [x] Implement `delete` command
+  - [x] Delete by query ID
+  - [x] `--with-cards` flag to delete associated cards
+- [x] Implement help documentation
+- [x] Add input validation
+- [x] Add tests

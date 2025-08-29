@@ -1,9 +1,41 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { PrismaClient } from '../generated/prisma'
+import { type Kanji, type Phrase, PrismaClient } from '../generated/prisma'
 import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
 import { exportToCSV } from '../lib/export'
 import { log } from '../lib/logger'
+
+/**
+ * Deduplicate phrases by kanji, keeping the earliest created (lowest ID)
+ */
+function deduplicatePhrases(phrases: Phrase[]): Phrase[] {
+  const seen = new Map<string, Phrase>()
+
+  for (const phrase of phrases) {
+    const existing = seen.get(phrase.kanji)
+    if (!existing || phrase.id < existing.id) {
+      seen.set(phrase.kanji, phrase)
+    }
+  }
+
+  return Array.from(seen.values()).sort((a, b) => a.id - b.id)
+}
+
+/**
+ * Deduplicate individual kanji by kanji character, keeping the earliest created (lowest ID)
+ */
+function deduplicateKanji(kanji: Kanji[]): Kanji[] {
+  const seen = new Map<string, Kanji>()
+
+  for (const k of kanji) {
+    const existing = seen.get(k.kanji)
+    if (!existing || k.id < existing.id) {
+      seen.set(k.kanji, k)
+    }
+  }
+
+  return Array.from(seen.values()).sort((a, b) => a.id - b.id)
+}
 
 /**
  * Recall and display previously generated flashcards
@@ -93,21 +125,33 @@ export default class Recall extends Command {
 
       // Handle --all flag
       if (flags.all) {
-        const phrases = await db.phrase.findMany({
+        const allPhrases = await db.phrase.findMany({
           orderBy: [{ queryId: 'desc' }, { id: 'asc' }],
         })
 
-        const kanji = await db.kanji.findMany({
+        const allKanji = await db.kanji.findMany({
           orderBy: [{ queryId: 'desc' }, { id: 'asc' }],
         })
 
-        if (phrases.length === 0 && kanji.length === 0) {
+        if (allPhrases.length === 0 && allKanji.length === 0) {
           this.log('📭 No cards found. Generate some cards first with the "cards" command.')
           await db.$disconnect()
           return
         }
 
+        // Deduplicate by kanji, keeping earliest created
+        const phrases = deduplicatePhrases(allPhrases)
+        const kanji = deduplicateKanji(allKanji)
+
+        const duplicatePhrases = allPhrases.length - phrases.length
+        const duplicateKanji = allKanji.length - kanji.length
+
         this.log('\\n📚 All Japanese Kanji Flashcards\\n')
+        if (duplicatePhrases > 0 || duplicateKanji > 0) {
+          this.log(
+            `🔄 Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)\\n`
+          )
+        }
         displayCards({ phrases, kanji })
 
         if (flags.export) {
@@ -119,7 +163,7 @@ export default class Recall extends Command {
         }
 
         log.info(
-          `Recalled all cards: ${phrases.length} phrases and ${kanji.length} individual kanji`
+          `Recalled all cards: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
         )
         await db.$disconnect()
         return
@@ -149,26 +193,39 @@ export default class Recall extends Command {
         this.error(`Query with ID ${queryId} not found. Use --list to see available queries.`)
       }
 
-      const phrases = await db.phrase.findMany({
+      const allPhrases = await db.phrase.findMany({
         where: { queryId },
         orderBy: { id: 'asc' },
       })
 
-      const kanji = await db.kanji.findMany({
+      const allKanji = await db.kanji.findMany({
         where: { queryId },
         orderBy: { id: 'asc' },
       })
 
-      if (phrases.length === 0 && kanji.length === 0) {
+      if (allPhrases.length === 0 && allKanji.length === 0) {
         this.log(`📭 No cards found for query ID ${queryId}.`)
         await db.$disconnect()
         return
       }
 
+      // Deduplicate by kanji, keeping earliest created
+      const phrases = deduplicatePhrases(allPhrases)
+      const kanji = deduplicateKanji(allKanji)
+
+      const duplicatePhrases = allPhrases.length - phrases.length
+      const duplicateKanji = allKanji.length - kanji.length
+
       const createdAt = new Date(query.createdAt).toLocaleString()
       this.log(`\\n📚 Flashcards from Query ID ${queryId}\\n`)
       this.log(`📅 Created: ${createdAt}`)
-      this.log(`📝 Prompt: ${query.prompt}\\n`)
+      this.log(`📝 Prompt: ${query.prompt}`)
+      if (duplicatePhrases > 0 || duplicateKanji > 0) {
+        this.log(
+          `🔄 Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)`
+        )
+      }
+      this.log('')
 
       displayCards({ phrases, kanji })
 
@@ -181,7 +238,7 @@ export default class Recall extends Command {
       }
 
       log.info(
-        `Recalled query ${queryId}: ${phrases.length} phrases and ${kanji.length} individual kanji`
+        `Recalled query ${queryId}: ${phrases.length} unique phrases and ${kanji.length} unique individual kanji (${duplicatePhrases + duplicateKanji} duplicates removed)`
       )
       await db.$disconnect()
     } catch (error) {
