@@ -111,6 +111,36 @@ describe('LlmService', () => {
         'No JSON array found in LLM response'
       )
     })
+
+    it('accepts 1-character kanji phrases that were previously rejected', async () => {
+      const mockPromptTemplate = 'Generate {{count}} phrases for {{domain}}'
+      const mockLlmResponse = `[
+        {
+          "englishMeaning": "Exit",
+          "kanji": "出",
+          "phoneticKana": "で",
+          "phoneticRomaji": "de",
+          "kanjiBreakdown": "Single character kanji"
+        }
+      ]`
+
+      mockReadFile.mockResolvedValue(mockPromptTemplate)
+      mockClient.createChatCompletionNonStreaming.mockResolvedValue(mockLlmResponse)
+
+      const result = await llmService.generatePhrases('single kanji', 1)
+
+      expect(result).toEqual([
+        {
+          englishMeaning: 'Exit',
+          kanji: '出',
+          phoneticKana: 'で',
+          phoneticRomaji: 'de',
+          kanjiBreakdown: 'Single character kanji',
+        }
+      ])
+
+      expect(mockClient.createChatCompletionNonStreaming).toHaveBeenCalled()
+    })
   })
 
   describe('generateKanjiMeanings', () => {

@@ -28,7 +28,7 @@ export interface LlmConfig {
  */
 const phraseSchema = z.object({
   englishMeaning: z.string().min(1),
-  kanji: z.string().min(2),
+  kanji: z.string().min(1),
   phoneticKana: z.string().min(1),
   phoneticRomaji: z.string().min(1),
   kanjiBreakdown: z.string().min(1),
