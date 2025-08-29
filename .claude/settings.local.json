@@ -8,7 +8,8 @@
       "Bash(mv:*)",
       "Bash(rm:*)",
       "Bash(mkdir:*)",
-      "Bash(pnpm cards:*)"
+      "Bash(pnpm cards:*)",
+      "Bash(env)"
     ],
     "deny": []
   }

@@ -3,6 +3,7 @@ import { PrismaClient } from '../generated/prisma'
 import { consolidate } from '../lib/consolidation'
 import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
+import { isClaudeCodeContext } from '../lib/environment'
 import { exportToCSV } from '../lib/export'
 import { createLlmService } from '../lib/llm'
 import { log } from '../lib/logger'
@@ -25,14 +26,14 @@ export default class Cards extends Command {
   static override examples = [
     '<%= config.bin %> <%= command.id %> 10 train stations',
     '<%= config.bin %> <%= command.id %> 5 restaurants',
-    '<%= config.bin %> <%= command.id %> 15 shopping --exclude-known',
+    '<%= config.bin %> <%= command.id %> 15 shopping --include-known',
     '<%= config.bin %> <%= command.id %> 10 "train stations" (quotes still supported)',
   ]
 
   static override flags = {
-    'exclude-known': Flags.boolean({
-      char: 'x',
-      description: 'exclude previously generated phrases to ensure only new phrases are created',
+    'include-known': Flags.boolean({
+      char: 'i',
+      description: 'allow previously generated phrases to be included in results',
       default: false,
     }),
     'no-open': Flags.boolean({
@@ -70,18 +71,19 @@ export default class Cards extends Command {
       // Create LLM service
       const llmService = createLlmService()
 
-      // Get existing phrases if exclude-known flag is set
+      // Get existing phrases to exclude (default behavior, unless --include-known is set)
       let knownPhrases: string[] = []
-      if (flags['exclude-known']) {
+      if (!flags['include-known']) {
         const existingPhrases = await db.phrase.findMany({
           select: { kanji: true },
         })
         knownPhrases = existingPhrases.map((p) => p.kanji)
 
         if (knownPhrases.length > 0) {
-          this.log(`Excluding ${knownPhrases.length} known phrases from generation`)
           log.info(`Found ${knownPhrases.length} existing phrases to exclude`)
         }
+      } else {
+        this.log('Including previously generated phrases (--include-known enabled)')
       }
 
       // Generate phrases using LLM
@@ -137,18 +139,12 @@ export default class Cards extends Command {
       })
 
       // Display in terminal
-      this.log('\nGenerated Japanese Kanji Flashcards\n')
       displayCards({ phrases, kanji })
 
       // Export to CSV
-      const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
-
-      this.log(`\nCards generated successfully!`)
-      this.log(`CSV files saved to: ${result.tempDir}`)
-
-      if (!flags['no-open']) {
-        this.log('CSV files opened automatically')
-      }
+      const shouldNotOpen =
+        flags['no-open'] || isClaudeCodeContext() || process.env.NODE_ENV === 'test'
+      await exportToCSV({ phrases, kanji }, !shouldNotOpen)
 
       log.info(
         `Successfully generated ${phrases.length} phrases and ${kanji.length} individual kanji`

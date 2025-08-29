@@ -3,6 +3,7 @@ import { Table } from 'console-table-printer'
 import { type Kanji, type Phrase, PrismaClient } from '../generated/prisma'
 import { initializeDatabase } from '../lib/database'
 import { displayCards } from '../lib/display'
+import { isClaudeCodeContext } from '../lib/environment'
 import { exportToCSV } from '../lib/export'
 import { log } from '../lib/logger'
 
@@ -164,10 +165,14 @@ export default class Recall extends Command {
         displayCards({ phrases, kanji })
 
         if (flags.export) {
-          const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
+          // Auto-enable --no-open in Claude Code context
+          const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
+          const result = await exportToCSV({ phrases, kanji }, shouldOpen)
           this.log(`\nCSV files exported to: ${result.tempDir}`)
-          if (!flags['no-open']) {
+          if (shouldOpen) {
             this.log('CSV files opened automatically')
+          } else if (isClaudeCodeContext() && !flags['no-open']) {
+            this.log('CSV files not opened (Claude Code context)')
           }
         }
 
@@ -242,10 +247,14 @@ export default class Recall extends Command {
         displayCards({ phrases, kanji })
 
         if (flags.export) {
-          const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
+          // Auto-enable --no-open in Claude Code context
+          const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
+          const result = await exportToCSV({ phrases, kanji }, shouldOpen)
           this.log(`\nCSV files exported to: ${result.tempDir}`)
-          if (!flags['no-open']) {
+          if (shouldOpen) {
             this.log('CSV files opened automatically')
+          } else if (isClaudeCodeContext() && !flags['no-open']) {
+            this.log('CSV files not opened (Claude Code context)')
           }
         }
 
@@ -317,10 +326,14 @@ export default class Recall extends Command {
         displayCards({ phrases, kanji })
 
         if (flags.export) {
-          const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
+          // Auto-enable --no-open in Claude Code context
+          const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
+          const result = await exportToCSV({ phrases, kanji }, shouldOpen)
           this.log(`\nCSV files exported to: ${result.tempDir}`)
-          if (!flags['no-open']) {
+          if (shouldOpen) {
             this.log('CSV files opened automatically')
+          } else if (isClaudeCodeContext() && !flags['no-open']) {
+            this.log('CSV files not opened (Claude Code context)')
           }
         }
 

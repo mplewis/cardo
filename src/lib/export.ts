@@ -41,13 +41,12 @@ export async function exportToCSV(cards: CardData, autoOpen = false): Promise<Ex
   log.debug(`Wrote kanji CSV to ${kanjiPath}`)
 
   // Auto-open CSV files if requested (but not in test mode)
-  if (autoOpen && process.env.NODE_ENV !== 'test') {
+  if (autoOpen) {
     try {
-      log.info('Auto-opening CSV files')
       await Promise.all([open(phrasesPath), open(kanjiPath)])
       log.info('CSV files opened successfully')
     } catch (error) {
-      log.warn({ error }, 'Could not auto-open CSV files')
+      log.warn({ error }, 'Could not open CSV files')
     }
   }
 
