@@ -11,7 +11,7 @@ import {
   OpenAIChatModels,
 } from 'any-llm'
 import { z } from 'zod'
-import type { RawLlmResponse } from './consolidation'
+import type { KanjiResponse, PhrasesResponse } from './consolidation'
 import { log } from './logger'
 
 /**
@@ -154,7 +154,7 @@ export class LlmService {
     domain: string,
     count: number,
     excludePhrases: string[] = []
-  ): Promise<RawLlmResponse[]> {
+  ): Promise<PhrasesResponse[]> {
     await this.loadPromptTemplates()
 
     if (!this.phrasesPromptTemplate) {
@@ -207,14 +207,7 @@ export class LlmService {
   /**
    * Generate meanings for individual kanji characters
    */
-  async generateKanjiMeanings(kanjiList: string[]): Promise<
-    Array<{
-      englishMeaning: string
-      kanji: string
-      phoneticKana: string
-      phoneticRomaji: string
-    }>
-  > {
+  async generateKanjiMeanings(kanjiList: string[]): Promise<KanjiResponse[]> {
     if (kanjiList.length === 0) {
       return []
     }
@@ -261,9 +254,13 @@ export class LlmService {
   }
 
   /**
-   * Parse phrases response from LLM into structured data
+   * Generic method to parse LLM JSON response with schema validation
    */
-  private parsePhrasesResponse(response: string): RawLlmResponse[] {
+  private parseJsonResponse<T>(
+    response: string,
+    schema: z.ZodSchema<T[]>,
+    dataType: 'phrases' | 'kanji'
+  ): T[] {
     try {
       // Extract JSON from response (handle cases where LLM adds extra text)
       const jsonMatch = response.match(/\[[\s\S]*\]/)
@@ -274,81 +271,43 @@ export class LlmService {
       const jsonString = jsonMatch[0]
       const parsedJson = JSON.parse(jsonString)
 
-      // Validate with Zod schema
-      const validatedData = phrasesArraySchema.parse(parsedJson)
+      // Validate with provided Zod schema
+      const validatedData = schema.parse(parsedJson)
 
-      // Convert to RawLlmResponse format
-      return validatedData.map((phrase) => ({
-        englishMeaning: phrase.englishMeaning,
-        kanji: phrase.kanji,
-        phoneticKana: phrase.phoneticKana,
-        phoneticRomaji: phrase.phoneticRomaji,
-        kanjiBreakdown: phrase.kanjiBreakdown,
-      }))
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        log.error(
-          { error: error.issues, cleanedResponse: response },
-          'Invalid phrase data structure from LLM'
-        )
-        throw new Error(
-          `Invalid phrase data structure: ${error.issues.map((e) => e.message).join(', ')}`
-        )
-      }
-
-      log.error(
-        { error, cleanedResponse: response },
-        'Failed to parse phrases JSON from LLM response'
-      )
-      throw new Error(
-        `Failed to parse phrases JSON: ${error instanceof Error ? error.message : String(error)}`
-      )
-    }
-  }
-
-  /**
-   * Parse individual kanji response from LLM into structured data
-   */
-  private parseKanjiResponse(response: string): Array<{
-    englishMeaning: string
-    kanji: string
-    phoneticKana: string
-    phoneticRomaji: string
-  }> {
-    try {
-      // Extract JSON from response (handle cases where LLM adds extra text)
-      const jsonMatch = response.match(/\[[\s\S]*\]/)
-      if (!jsonMatch) {
-        throw new Error('No JSON array found in LLM response')
-      }
-
-      const jsonString = jsonMatch[0]
-      const parsedJson = JSON.parse(jsonString)
-
-      // Validate with Zod schema
-      const validatedData = kanjiArraySchema.parse(parsedJson)
-
-      // Return validated data (already in correct format)
       return validatedData
     } catch (error) {
       if (error instanceof z.ZodError) {
         log.error(
           { error: error.issues, cleanedResponse: response },
-          'Invalid kanji data structure from LLM'
+          `Invalid ${dataType} data structure from LLM`
         )
         throw new Error(
-          `Invalid kanji data structure: ${error.issues.map((e) => e.message).join(', ')}`
+          `Invalid ${dataType} data structure: ${error.issues.map((e) => e.message).join(', ')}`
         )
       }
 
       log.error(
         { error, cleanedResponse: response },
-        'Failed to parse kanji JSON from LLM response'
+        `Failed to parse ${dataType} JSON from LLM response`
       )
       throw new Error(
-        `Failed to parse kanji JSON: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to parse ${dataType} JSON: ${error instanceof Error ? error.message : String(error)}`
       )
     }
+  }
+
+  /**
+   * Parse phrases response from LLM into structured data
+   */
+  private parsePhrasesResponse(response: string): PhrasesResponse[] {
+    return this.parseJsonResponse(response, phrasesArraySchema, 'phrases')
+  }
+
+  /**
+   * Parse individual kanji response from LLM into structured data
+   */
+  private parseKanjiResponse(response: string): KanjiResponse[] {
+    return this.parseJsonResponse(response, kanjiArraySchema, 'kanji')
   }
 }
 

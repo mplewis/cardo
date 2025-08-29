@@ -2,7 +2,7 @@ import { getExistingKanji } from './database'
 import { createLlmService } from './llm'
 import { log } from './logger'
 
-export interface RawLlmResponse {
+export interface PhrasesResponse {
   kanji: string
   englishMeaning: string
   phoneticKana: string
@@ -10,20 +10,16 @@ export interface RawLlmResponse {
   kanjiBreakdown: string
 }
 
+export interface KanjiResponse {
+  kanji: string
+  englishMeaning: string
+  phoneticKana: string
+  phoneticRomaji: string
+}
+
 export interface ConsolidationResult {
-  phrases: Array<{
-    englishMeaning: string
-    kanji: string
-    phoneticKana: string
-    phoneticRomaji: string
-    kanjiBreakdown: string
-  }>
-  kanji: Array<{
-    englishMeaning: string
-    kanji: string
-    phoneticKana: string
-    phoneticRomaji: string
-  }>
+  phrases: PhrasesResponse[]
+  kanji: KanjiResponse[]
 }
 
 /**
@@ -36,7 +32,7 @@ export interface ConsolidationResult {
  * 4. Query LLM for meanings of new kanji that don't have data
  * 5. Return structured data for further processing
  */
-export async function consolidate(rawData: RawLlmResponse[]): Promise<ConsolidationResult> {
+export async function consolidate(rawData: PhrasesResponse[]): Promise<ConsolidationResult> {
   const phrases: ConsolidationResult['phrases'] = []
   const kanjiSet = new Set<string>()
   const kanjiData = new Map<string, { meaning: string; kana: string; romaji: string }>()

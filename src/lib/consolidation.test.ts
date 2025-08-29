@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { consolidate, type RawLlmResponse } from './consolidation'
+import { consolidate, type PhrasesResponse } from './consolidation'
 
 // Mock the database module
 vi.mock('./database', () => ({
@@ -31,7 +31,7 @@ describe('consolidate', () => {
   it('separates phrases from individual kanji', async () => {
     mockGetExistingKanji.mockResolvedValue([])
 
-    const rawData: RawLlmResponse[] = [
+    const rawData: PhrasesResponse[] = [
       {
         kanji: '出口',
         englishMeaning: 'Exit',
@@ -66,7 +66,7 @@ describe('consolidate', () => {
   it('extracts kanji from phrase breakdowns', async () => {
     mockGetExistingKanji.mockResolvedValue([])
 
-    const rawData: RawLlmResponse[] = [
+    const rawData: PhrasesResponse[] = [
       {
         kanji: '現金のみ',
         englishMeaning: 'Cash Only',
@@ -86,7 +86,7 @@ describe('consolidate', () => {
   it('deduplicates against existing kanji', async () => {
     mockGetExistingKanji.mockResolvedValue(['出'])
 
-    const rawData: RawLlmResponse[] = [
+    const rawData: PhrasesResponse[] = [
       {
         kanji: '出口',
         englishMeaning: 'Exit',
@@ -106,7 +106,7 @@ describe('consolidate', () => {
   it('handles kata only breakdowns', async () => {
     mockGetExistingKanji.mockResolvedValue([])
 
-    const rawData: RawLlmResponse[] = [
+    const rawData: PhrasesResponse[] = [
       {
         kanji: 'ひらがな',
         englishMeaning: 'Hiragana',
@@ -125,7 +125,7 @@ describe('consolidate', () => {
   it('handles complex breakdown formats', async () => {
     mockGetExistingKanji.mockResolvedValue([])
 
-    const rawData: RawLlmResponse[] = [
+    const rawData: PhrasesResponse[] = [
       {
         kanji: '薬局',
         englishMeaning: 'Pharmacy',

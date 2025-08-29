@@ -1,4 +1,4 @@
-import { consolidate, type RawLlmResponse } from './consolidation'
+import { consolidate, type PhrasesResponse } from './consolidation'
 import {
   createKanjis,
   createPhrases,
@@ -35,7 +35,7 @@ export interface CardData {
  */
 export async function generateCards(
   queryId: number,
-  rawLlmData: RawLlmResponse[]
+  rawLlmData: PhrasesResponse[]
 ): Promise<CardData> {
   // Step 1: Consolidate the data
   const consolidated = await consolidate(rawLlmData)
