@@ -102,20 +102,20 @@ export default class Recall extends Command {
         })
 
         if (queries.length === 0) {
-          this.log('📭 No queries found. Generate some cards first with the "cards" command.')
+          this.log('No queries found. Generate some cards first with the "cards" command.')
           await db.$disconnect()
           return
         }
 
-        this.log('\\n📋 Available Queries:\\n')
+        this.log('\nAvailable Queries:\n')
 
         for (const query of queries) {
           const createdAt = new Date(query.createdAt).toLocaleString()
-          this.log(`🆔 ID: ${query.id}`)
-          this.log(`   📅 Created: ${createdAt}`)
-          this.log(`   📝 Prompt: ${query.prompt}`)
+          this.log(`ID: ${query.id}`)
+          this.log(`   Created: ${createdAt}`)
+          this.log(`   Prompt: ${query.prompt}`)
           this.log(
-            `   📊 Cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
+            `   Cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
           )
           this.log('')
         }
@@ -134,7 +134,7 @@ export default class Recall extends Command {
         })
 
         if (allPhrases.length === 0 && allKanji.length === 0) {
-          this.log('📭 No cards found. Generate some cards first with the "cards" command.')
+          this.log('No cards found. Generate some cards first with the "cards" command.')
           await db.$disconnect()
           return
         }
@@ -146,19 +146,19 @@ export default class Recall extends Command {
         const duplicatePhrases = allPhrases.length - phrases.length
         const duplicateKanji = allKanji.length - kanji.length
 
-        this.log('\\n📚 All Japanese Kanji Flashcards\\n')
+        this.log('\nAll Japanese Kanji Flashcards\n')
         if (duplicatePhrases > 0 || duplicateKanji > 0) {
           this.log(
-            `🔄 Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)\\n`
+            `Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)\n`
           )
         }
         displayCards({ phrases, kanji })
 
         if (flags.export) {
           const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
-          this.log(`\\n📁 CSV files exported to: ${result.tempDir}`)
+          this.log(`\nCSV files exported to: ${result.tempDir}`)
           if (!flags['no-open']) {
-            this.log('📂 CSV files opened automatically')
+            this.log('CSV files opened automatically')
           }
         }
 
@@ -204,7 +204,7 @@ export default class Recall extends Command {
       })
 
       if (allPhrases.length === 0 && allKanji.length === 0) {
-        this.log(`📭 No cards found for query ID ${queryId}.`)
+        this.log(`No cards found for query ID ${queryId}.`)
         await db.$disconnect()
         return
       }
@@ -217,12 +217,12 @@ export default class Recall extends Command {
       const duplicateKanji = allKanji.length - kanji.length
 
       const createdAt = new Date(query.createdAt).toLocaleString()
-      this.log(`\\n📚 Flashcards from Query ID ${queryId}\\n`)
-      this.log(`📅 Created: ${createdAt}`)
-      this.log(`📝 Prompt: ${query.prompt}`)
+      this.log(`\nFlashcards from Query ID ${queryId}\n`)
+      this.log(`Created: ${createdAt}`)
+      this.log(`Prompt: ${query.prompt}`)
       if (duplicatePhrases > 0 || duplicateKanji > 0) {
         this.log(
-          `🔄 Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)`
+          `Deduplicated: ${duplicatePhrases} phrase(s) and ${duplicateKanji} kanji (kept earliest)`
         )
       }
       this.log('')
@@ -231,9 +231,9 @@ export default class Recall extends Command {
 
       if (flags.export) {
         const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
-        this.log(`\\n📁 CSV files exported to: ${result.tempDir}`)
+        this.log(`\nCSV files exported to: ${result.tempDir}`)
         if (!flags['no-open']) {
-          this.log('📂 CSV files opened automatically')
+          this.log('CSV files opened automatically')
         }
       }
 

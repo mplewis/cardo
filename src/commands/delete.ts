@@ -63,22 +63,22 @@ export default class Delete extends Command {
       const createdAt = new Date(query.createdAt).toLocaleString()
 
       // Show what will be deleted
-      this.log(`\\n🗑️  Delete Query ${queryId}\\n`)
-      this.log(`📅 Created: ${createdAt}`)
-      this.log(`📝 Prompt: ${query.prompt}`)
+      this.log(`\nDelete Query ${queryId}\n`)
+      this.log(`Created: ${createdAt}`)
+      this.log(`Prompt: ${query.prompt}`)
       this.log(
-        `📊 Associated cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
+        `Associated cards: ${query._count.phrases} phrases, ${query._count.kanji} individual kanji`
       )
 
       if (flags['with-cards']) {
-        this.log(`\\n⚠️  This will permanently delete the query and ALL associated flashcards.`)
+        this.log(`\nThis will permanently delete the query and ALL associated flashcards.`)
       } else {
-        this.log(`\\n⚠️  This will permanently delete the query only (cards will remain orphaned).`)
+        this.log(`\nThis will permanently delete the query only (cards will remain orphaned).`)
       }
 
       // Confirmation prompt (unless --force is used)
       if (!flags.force) {
-        this.log('\\nAre you sure you want to proceed? (y/N)')
+        this.log('\nAre you sure you want to proceed? (y/N)')
         this.error('Use --force flag to skip this confirmation and proceed with deletion.')
       }
 
@@ -89,7 +89,7 @@ export default class Delete extends Command {
           where: { id: queryId },
         })
 
-        this.log(`\\n✅ Successfully deleted query ${queryId} and all associated cards.`)
+        this.log(`\nSuccessfully deleted query ${queryId} and all associated cards.`)
         log.info(
           `Deleted query ${queryId} with ${query._count.phrases} phrases and ${query._count.kanji} kanji`
         )
@@ -110,7 +110,7 @@ export default class Delete extends Command {
         })
 
         this.log(
-          `\\n✅ Successfully deleted query ${queryId}. Associated cards remain in database.`
+          `\nSuccessfully deleted query ${queryId}. Associated cards remain in database.`
         )
         log.info(
           `Deleted query ${queryId}, orphaned ${query._count.phrases} phrases and ${query._count.kanji} kanji`

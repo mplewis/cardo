@@ -7,9 +7,9 @@
       "Bash(act:*)",
       "Bash(mv:*)",
       "Bash(rm:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(pnpm cards:*)"
     ],
-    "deny": [],
-    "ask": []
+    "deny": []
   }
 }

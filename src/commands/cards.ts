@@ -74,7 +74,7 @@ export default class Cards extends Command {
         knownPhrases = existingPhrases.map((p) => p.kanji)
 
         if (knownPhrases.length > 0) {
-          this.log(`📋 Excluding ${knownPhrases.length} known phrases from generation`)
+          this.log(`Excluding ${knownPhrases.length} known phrases from generation`)
           log.info(`Found ${knownPhrases.length} existing phrases to exclude`)
         }
       }
@@ -131,17 +131,17 @@ export default class Cards extends Command {
       })
 
       // Display in terminal
-      this.log('\\n📚 Generated Japanese Kanji Flashcards\\n')
+      this.log('\nGenerated Japanese Kanji Flashcards\n')
       displayCards({ phrases, kanji })
 
       // Export to CSV
       const result = await exportToCSV({ phrases, kanji }, !flags['no-open'])
 
-      this.log(`\\n✅ Cards generated successfully!`)
-      this.log(`📁 CSV files saved to: ${result.tempDir}`)
+      this.log(`\nCards generated successfully!`)
+      this.log(`CSV files saved to: ${result.tempDir}`)
 
       if (!flags['no-open']) {
-        this.log('📂 CSV files opened automatically')
+        this.log('CSV files opened automatically')
       }
 
       log.info(
