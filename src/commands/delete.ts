@@ -90,7 +90,6 @@ export default class Delete extends Command {
           where: { id: queryId },
         })
 
-        this.log(`\nSuccessfully deleted query ${queryId} and all associated cards.`)
         log.info(
           {
             queryId,
@@ -115,7 +114,6 @@ export default class Delete extends Command {
           where: { id: queryId },
         })
 
-        this.log(`\nSuccessfully deleted query ${queryId}. Associated cards remain in database.`)
         log.info(
           {
             queryId,
