@@ -91,7 +91,10 @@ export default class Recall extends Command {
       // Handle --list flag
       if (flags.list) {
         const queries = await db.query.findMany({
-          orderBy: { createdAt: 'desc' },
+          orderBy: [
+            { domain: 'asc' },
+            { createdAt: 'desc' }
+          ],
           include: {
             _count: {
               select: {
