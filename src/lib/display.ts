@@ -6,7 +6,7 @@ import type { CardData } from './card'
  */
 export function displayCards(cardData: CardData): void {
   if (cardData.phrases.length > 0) {
-    console.log('\n📝 Phrases:')
+    console.log('\nPhrases:')
     const phrasesTable = new Table({
       title: 'Japanese Phrases',
       columns: [
@@ -32,7 +32,7 @@ export function displayCards(cardData: CardData): void {
   }
 
   if (cardData.kanji.length > 0) {
-    console.log('\n🈂️ Individual Kanji:')
+    console.log('\nIndividual Kanji:')
     const kanjiTable = new Table({
       title: 'Individual Kanji Characters',
       columns: [
@@ -56,7 +56,7 @@ export function displayCards(cardData: CardData): void {
   }
 
   if (cardData.phrases.length === 0 && cardData.kanji.length === 0) {
-    console.log('\n📭 No cards found.')
+    console.log('\nNo cards found.')
   }
 }
 
