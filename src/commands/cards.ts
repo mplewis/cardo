@@ -16,18 +16,17 @@ export default class Cards extends Command {
       description: 'number of phrases to generate',
       required: true,
     }),
-    domain: Args.string({
-      description: 'domain/theme for the phrases (e.g., "train stations", "restaurants")',
-      required: true,
-    }),
   }
+
+  static override strict = false
 
   static override description = 'Generate Japanese kanji flashcards using LLM'
 
   static override examples = [
-    '<%= config.bin %> <%= command.id %> 10 "train stations"',
-    '<%= config.bin %> <%= command.id %> 5 "restaurants"',
-    '<%= config.bin %> <%= command.id %> 15 "shopping" --exclude-known',
+    '<%= config.bin %> <%= command.id %> 10 train stations',
+    '<%= config.bin %> <%= command.id %> 5 restaurants',
+    '<%= config.bin %> <%= command.id %> 15 shopping --exclude-known',
+    '<%= config.bin %> <%= command.id %> 10 "train stations" (quotes still supported)',
   ]
 
   static override flags = {
@@ -43,16 +42,22 @@ export default class Cards extends Command {
   }
 
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(Cards)
-    const { count, domain } = args
+    const { args, flags, argv } = await this.parse(Cards)
+    const { count } = args
+
+    // Extract domain from remaining arguments (everything after count)
+    const domainArgs = argv.slice(1) // Skip the count argument
+    const domain = domainArgs.join(' ').trim()
 
     // Validate input
     if (count <= 0) {
       this.error('Count must be a positive integer')
     }
 
-    if (!domain.trim()) {
-      this.error('Domain cannot be empty')
+    if (!domain) {
+      this.error(
+        'Domain cannot be empty. Please provide a domain after the count, e.g., "cards 5 train stations"'
+      )
     }
 
     log.info(`Starting card generation for ${count} phrases in domain: "${domain}"`)

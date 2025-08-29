@@ -1,4 +1,4 @@
-import { Args, Command, Flags } from '@oclif/core'
+import { Command, Flags } from '@oclif/core'
 import { Table } from 'console-table-printer'
 import { type Kanji, type Phrase, PrismaClient } from '../generated/prisma'
 import { initializeDatabase } from '../lib/database'
@@ -42,13 +42,9 @@ function deduplicateKanji(kanji: Kanji[]): Kanji[] {
  * Recall and display previously generated flashcards
  */
 export default class Recall extends Command {
-  static override args = {
-    queryIdOrSearch: Args.string({
-      description:
-        'query ID to recall or search term to find queries by domain (use --list to see available queries)',
-      required: false,
-    }),
-  }
+  static override args = {}
+
+  static override strict = false
 
   static override description = 'Recall and display previously generated flashcards'
 
@@ -58,6 +54,7 @@ export default class Recall extends Command {
     '<%= config.bin %> <%= command.id %> 1',
     '<%= config.bin %> <%= command.id %> 3 --export',
     '<%= config.bin %> <%= command.id %> food',
+    '<%= config.bin %> <%= command.id %> train station',
     '<%= config.bin %> <%= command.id %> restaurant --export',
   ]
 
@@ -84,8 +81,10 @@ export default class Recall extends Command {
   }
 
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(Recall)
-    const { queryIdOrSearch } = args
+    const { flags, argv } = await this.parse(Recall)
+
+    // Join all argv arguments to create the queryIdOrSearch
+    const queryIdOrSearch = argv.join(' ').trim()
 
     try {
       await initializeDatabase()
