@@ -189,9 +189,8 @@ export class LlmService {
       }
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
-      log.debug({ response }, 'Raw LLM response')
-
       const cleanResponse = cleanStreamingResponse(response)
+      log.debug({ response: cleanResponse }, 'Cleaned LLM response')
 
       const parsedData = this.parsePhrasesResponse(cleanResponse)
       log.info({ count: parsedData.length }, 'Parsed phrases from LLM response')
@@ -247,9 +246,8 @@ export class LlmService {
       }
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
-      log.debug({ response }, 'Raw LLM response')
-
       const cleanResponse = cleanStreamingResponse(response)
+      log.debug({ response: cleanResponse }, 'Cleaned LLM response')
       const parsedData = this.parseKanjiResponse(cleanResponse)
       log.info({ count: parsedData.length }, 'Parsed kanji meanings from LLM response')
 
@@ -289,13 +287,19 @@ export class LlmService {
       }))
     } catch (error) {
       if (error instanceof z.ZodError) {
-        log.error({ error: error.issues }, 'Invalid phrase data structure from LLM')
+        log.error(
+          { error: error.issues, cleanedResponse: response },
+          'Invalid phrase data structure from LLM'
+        )
         throw new Error(
           `Invalid phrase data structure: ${error.issues.map((e) => e.message).join(', ')}`
         )
       }
 
-      log.error({ error }, 'Failed to parse phrases JSON from LLM response')
+      log.error(
+        { error, cleanedResponse: response },
+        'Failed to parse phrases JSON from LLM response'
+      )
       throw new Error(
         `Failed to parse phrases JSON: ${error instanceof Error ? error.message : String(error)}`
       )
@@ -328,13 +332,19 @@ export class LlmService {
       return validatedData
     } catch (error) {
       if (error instanceof z.ZodError) {
-        log.error({ error: error.issues }, 'Invalid kanji data structure from LLM')
+        log.error(
+          { error: error.issues, cleanedResponse: response },
+          'Invalid kanji data structure from LLM'
+        )
         throw new Error(
           `Invalid kanji data structure: ${error.issues.map((e) => e.message).join(', ')}`
         )
       }
 
-      log.error({ error }, 'Failed to parse kanji JSON from LLM response')
+      log.error(
+        { error, cleanedResponse: response },
+        'Failed to parse kanji JSON from LLM response'
+      )
       throw new Error(
         `Failed to parse kanji JSON: ${error instanceof Error ? error.message : String(error)}`
       )
