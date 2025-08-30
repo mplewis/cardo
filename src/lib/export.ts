@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import open from 'open'
 import type { CardData } from './card'
+import { getEnvironmentConfig } from './config'
 import { isClaudeCodeContext } from './environment'
 import { log } from './logger'
 
@@ -42,7 +43,8 @@ export async function exportToCSV(cards: CardData, autoOpen = false): Promise<Ex
   log.debug({ path: kanjiPath }, 'Wrote kanji CSV')
 
   // Auto-open CSV files if requested
-  if (isClaudeCodeContext() || process.env.NODE_ENV === 'test') {
+  const { isTest } = getEnvironmentConfig()
+  if (isClaudeCodeContext() || isTest) {
     // Never open in automation contexts
   } else if (autoOpen) {
     try {

@@ -11,6 +11,7 @@ import {
   OpenAIChatModels,
 } from 'any-llm'
 import { z } from 'zod'
+import { getLLMConfig } from './config'
 import type { KanjiResponse, PhrasesResponse } from './consolidation'
 import { log } from './logger'
 
@@ -315,8 +316,7 @@ export class LlmService {
  * Create an LLM service instance from environment variables
  */
 export function createLlmService(): LlmService {
-  const providerString = process.env.LLM_PROVIDER || 'OpenAI'
-  const apiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY
+  const { provider: providerString, apiKey } = getLLMConfig()
 
   // Convert string to ModelProvider enum and get default model
   let provider: ModelProvider

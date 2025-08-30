@@ -1,13 +1,15 @@
 import pino from 'pino'
+import { getLoggingConfig } from './config'
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
-const LOG_LEVEL: LogLevel = (process.env.LOG_LEVEL as LogLevel) || 'info'
 
 /** Create logger with appropriate configuration */
 function createLogger() {
+  const { level } = getLoggingConfig()
+
   if (process.stdout.isTTY) {
     return pino({
-      level: LOG_LEVEL,
+      level,
       transport: {
         target: 'pino-pretty',
         options: {
@@ -20,7 +22,7 @@ function createLogger() {
   }
 
   return pino({
-    level: LOG_LEVEL,
+    level,
     formatters: {
       level: (label) => ({ level: label }),
     },

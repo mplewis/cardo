@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import type { Kanji, Phrase, Query } from '../generated/prisma'
 import { PrismaClient } from '../generated/prisma'
 import { getTestPrismaClient } from '../test-database'
+import { getDatabaseConfig } from './config'
 import { log } from './logger'
 
 export type QueryWithCards = Query & {
@@ -20,16 +21,18 @@ function getDatabasePath(): string {
 
 /** Create and configure the Prisma client with the correct database path */
 function createPrismaClient(): PrismaClient {
+  const { url } = getDatabaseConfig()
   const databasePath = getDatabasePath()
+
   // Only set DATABASE_URL if it's not already set (preserves test environment settings)
-  if (!process.env.DATABASE_URL) {
+  if (!url) {
     process.env.DATABASE_URL = `file:${databasePath}`
   }
 
   return new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL || `file:${databasePath}`,
+        url: url || `file:${databasePath}`,
       },
     },
   })
@@ -39,7 +42,7 @@ let prodPrisma: PrismaClient | null = null
 
 // Use shared test database client in test environment, otherwise use production client
 function getPrismaClient(): PrismaClient {
-  const isTest = process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test.db')
+  const { isTest } = getDatabaseConfig()
   if (isTest) {
     return getTestPrismaClient()
   } else {
