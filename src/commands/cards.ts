@@ -2,7 +2,7 @@ import { Args, Command, Flags } from '@oclif/core'
 import { withDatabaseCommand } from '../lib/command-utils'
 import { consolidate } from '../lib/consolidation'
 import { displayCards } from '../lib/display'
-import { exportToCSV } from '../lib/export'
+import { exportAndShowResult } from '../lib/export-utils'
 import { createLlmService } from '../lib/llm'
 import { log } from '../lib/logger'
 
@@ -137,7 +137,7 @@ export default class Cards extends Command {
         displayCards({ phrases, kanji })
 
         // Export to CSV
-        await exportToCSV({ phrases, kanji }, !flags['no-open'])
+        await exportAndShowResult({ phrases, kanji }, flags['no-open'], this)
 
         log.info({ phrases: phrases.length, kanji: kanji.length }, 'Successfully generated cards')
       })

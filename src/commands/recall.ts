@@ -3,8 +3,7 @@ import { Table } from 'console-table-printer'
 import { withDatabaseCommand } from '../lib/command-utils'
 import { deduplicateKanji, deduplicatePhrases } from '../lib/data-utils'
 import { displayCards } from '../lib/display'
-import { isClaudeCodeContext } from '../lib/environment'
-import { exportToCSV } from '../lib/export'
+import { exportAndShowResult } from '../lib/export-utils'
 import { log } from '../lib/logger'
 
 /**
@@ -131,15 +130,7 @@ export default class Recall extends Command {
           displayCards({ phrases, kanji })
 
           if (flags.export) {
-            // Auto-enable --no-open in Claude Code context
-            const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
-            const result = await exportToCSV({ phrases, kanji }, shouldOpen)
-            this.log(`\nCSV files exported to: ${result.tempDir}`)
-            if (shouldOpen) {
-              this.log('CSV files opened automatically')
-            } else if (isClaudeCodeContext() && !flags['no-open']) {
-              this.log('CSV files not opened (Claude Code context)')
-            }
+            await exportAndShowResult({ phrases, kanji }, flags['no-open'], this)
           }
 
           log.info(
@@ -218,15 +209,7 @@ export default class Recall extends Command {
           displayCards({ phrases, kanji })
 
           if (flags.export) {
-            // Auto-enable --no-open in Claude Code context
-            const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
-            const result = await exportToCSV({ phrases, kanji }, shouldOpen)
-            this.log(`\nCSV files exported to: ${result.tempDir}`)
-            if (shouldOpen) {
-              this.log('CSV files opened automatically')
-            } else if (isClaudeCodeContext() && !flags['no-open']) {
-              this.log('CSV files not opened (Claude Code context)')
-            }
+            await exportAndShowResult({ phrases, kanji }, flags['no-open'], this)
           }
 
           log.info(
@@ -309,15 +292,7 @@ export default class Recall extends Command {
           displayCards({ phrases, kanji })
 
           if (flags.export) {
-            // Auto-enable --no-open in Claude Code context
-            const shouldOpen = !flags['no-open'] && !isClaudeCodeContext()
-            const result = await exportToCSV({ phrases, kanji }, shouldOpen)
-            this.log(`\nCSV files exported to: ${result.tempDir}`)
-            if (shouldOpen) {
-              this.log('CSV files opened automatically')
-            } else if (isClaudeCodeContext() && !flags['no-open']) {
-              this.log('CSV files not opened (Claude Code context)')
-            }
+            await exportAndShowResult({ phrases, kanji }, flags['no-open'], this)
           }
 
           log.info(
