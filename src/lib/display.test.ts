@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { CardData } from './card'
 import { displayCards, displaySummary } from './display'
+import type { CardData } from './types/core'
 
 // Mock console-table-printer
 vi.mock('console-table-printer', () => ({

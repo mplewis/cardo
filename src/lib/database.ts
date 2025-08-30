@@ -7,6 +7,7 @@ import { getTestPrismaClient } from '../test-database'
 import { getDatabaseConfig } from './config'
 import { DATABASE_FILENAME } from './constants/file'
 import { log } from './logger'
+import type { CreateKanjiData, CreatePhraseData } from './types/core'
 
 export type QueryWithCards = Query & {
   phrases: Phrase[]
@@ -57,23 +58,6 @@ function getPrismaClient(): PrismaClient {
 export interface CreateQueryData {
   count: number
   domain: string
-}
-
-export interface CreatePhraseData {
-  englishMeaning: string
-  kanji: string
-  phoneticKana: string
-  phoneticRomaji: string
-  kanjiBreakdown: string
-  queryId: number
-}
-
-export interface CreateKanjiData {
-  englishMeaning: string
-  kanji: string
-  phoneticKana: string
-  phoneticRomaji: string
-  queryId: number
 }
 
 /** Create a new query record */

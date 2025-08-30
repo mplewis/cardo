@@ -1,6 +1,6 @@
-import type { CardData } from './card'
 import { isClaudeCodeContext } from './environment'
 import { type ExportResult, exportToCSV } from './export'
+import type { CardData } from './types/core'
 
 /**
  * Logger interface for export feedback

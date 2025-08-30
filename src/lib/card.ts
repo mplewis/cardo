@@ -8,22 +8,7 @@ import {
   getQueryWithCards,
 } from './database'
 import { createLlmService } from './llm'
-
-export interface CardData {
-  phrases: Array<{
-    englishMeaning: string
-    kanji: string
-    phoneticKana: string
-    phoneticRomaji: string
-    kanjiBreakdown: string
-  }>
-  kanji: Array<{
-    englishMeaning: string
-    kanji: string
-    phoneticKana: string
-    phoneticRomaji: string
-  }>
-}
+import type { CardData } from './types/core'
 
 /**
  * Generate cards from raw LLM response data

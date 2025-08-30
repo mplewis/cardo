@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import type { CardData } from '../lib/card'
 import { exportToCSV } from '../lib/export'
+import type { CardData } from '../lib/types/core'
 
 describe('exportToCSV', () => {
   it('creates CSV files for phrases and kanji', async () => {

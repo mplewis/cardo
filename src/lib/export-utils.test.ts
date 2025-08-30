@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { CardData } from './card'
 import { exportAndShowResult } from './export-utils'
+import type { CardData } from './types/core'
 
 // Mock the dependencies
 vi.mock('./environment', () => ({

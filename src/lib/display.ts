@@ -1,5 +1,5 @@
 import { Table } from 'console-table-printer'
-import type { CardData } from './card'
+import type { CardData } from './types/core'
 
 /**
  * Display card data in formatted terminal tables

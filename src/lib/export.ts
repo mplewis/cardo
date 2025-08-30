@@ -2,11 +2,11 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import open from 'open'
-import type { CardData } from './card'
 import { getEnvironmentConfig } from './config'
 import { KANJI_CSV_FILENAME, PHRASES_CSV_FILENAME } from './constants/file'
 import { isClaudeCodeContext } from './environment'
 import { log } from './logger'
+import type { CardData } from './types/core'
 
 export interface ExportResult {
   phrasesPath: string

@@ -9,7 +9,8 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(pnpm cards:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

@@ -1,5 +1,5 @@
 import type { Kanji, Phrase } from '../generated/prisma'
-import type { CardData } from './card'
+import type { CardData } from './types/core'
 
 /**
  * Map database phrases to CardData format

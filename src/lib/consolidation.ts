@@ -1,25 +1,15 @@
 import { getExistingKanji } from './database'
 import { createLlmService } from './llm'
 import { log } from './logger'
+import type { KanjiInfo, PhraseInfo } from './types/core'
 
-export interface PhrasesResponse {
-  kanji: string
-  englishMeaning: string
-  phoneticKana: string
-  phoneticRomaji: string
-  kanjiBreakdown: string
-}
+export interface PhrasesResponse extends PhraseInfo {}
 
-export interface KanjiResponse {
-  kanji: string
-  englishMeaning: string
-  phoneticKana: string
-  phoneticRomaji: string
-}
+export interface KanjiResponse extends KanjiInfo {}
 
 export interface ConsolidationResult {
-  phrases: PhrasesResponse[]
-  kanji: KanjiResponse[]
+  phrases: PhraseInfo[]
+  kanji: KanjiInfo[]
 }
 
 /**
