@@ -30,8 +30,6 @@ model Phrase {
   kanjiBreakdown  String
   queryId         Int
   query           Query  @relation(fields: [queryId], references: [id], onDelete: Cascade)
-  
-  @@unique([kanji, queryId])
 }
 
 model Kanji {
