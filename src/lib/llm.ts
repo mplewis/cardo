@@ -13,7 +13,15 @@ import {
 import { z } from 'zod'
 import { getLLMConfig } from './config'
 import type { KanjiResponse, PhrasesResponse } from './consolidation'
+import {
+  DEFAULT_TEMPERATURE,
+  KANJI_LOOKUP_MAX_TOKENS,
+  PHRASE_GENERATION_MAX_TOKENS,
+} from './constants/llm'
 import { log } from './logger'
+
+/** Streaming response chunk prefix pattern */
+const STREAMING_CHUNK_PREFIX = '0:"'
 
 /**
  * Configuration for LLM service
@@ -56,7 +64,7 @@ const kanjiArraySchema = z.array(kanjiSchema)
  * Handles responses that come in format: 0:"content" chunks
  */
 function cleanStreamingResponse(response: string): string {
-  if (typeof response !== 'string' || !response.includes('0:"')) {
+  if (typeof response !== 'string' || !response.includes(STREAMING_CHUNK_PREFIX)) {
     return response
   }
 
@@ -65,10 +73,10 @@ function cleanStreamingResponse(response: string): string {
   let pos = 0
 
   while (pos < response.length) {
-    const start = response.indexOf('0:"', pos)
+    const start = response.indexOf(STREAMING_CHUNK_PREFIX, pos)
     if (start === -1) break
 
-    const contentStart = start + 3 // Skip '0:"'
+    const contentStart = start + STREAMING_CHUNK_PREFIX.length
 
     // Find the closing quote, but skip over any escaped quotes (\")
     let end = contentStart
@@ -185,8 +193,8 @@ export class LlmService {
 
       const chatSettings: LLMSettings = {
         model: this.model,
-        temperature: 0.3,
-        maxTokens: 2000,
+        temperature: DEFAULT_TEMPERATURE,
+        maxTokens: PHRASE_GENERATION_MAX_TOKENS,
       }
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)
@@ -235,8 +243,8 @@ export class LlmService {
 
       const chatSettings: LLMSettings = {
         model: this.model,
-        temperature: 0.3,
-        maxTokens: 1500,
+        temperature: DEFAULT_TEMPERATURE,
+        maxTokens: KANJI_LOOKUP_MAX_TOKENS,
       }
 
       const response = await this.client.createChatCompletionNonStreaming(chatSettings, messages)

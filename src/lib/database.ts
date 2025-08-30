@@ -5,6 +5,7 @@ import type { Kanji, Phrase, Query } from '../generated/prisma'
 import { PrismaClient } from '../generated/prisma'
 import { getTestPrismaClient } from '../test-database'
 import { getDatabaseConfig } from './config'
+import { DATABASE_FILENAME } from './constants/file'
 import { log } from './logger'
 
 export type QueryWithCards = Query & {
@@ -16,7 +17,7 @@ export type QueryWithCards = Query & {
 function getDatabasePath(): string {
   const appDataDir = join(homedir(), '.local', 'share', 'cardo')
   mkdirSync(appDataDir, { recursive: true })
-  return join(appDataDir, 'cardo.db')
+  return join(appDataDir, DATABASE_FILENAME)
 }
 
 /** Create and configure the Prisma client with the correct database path */

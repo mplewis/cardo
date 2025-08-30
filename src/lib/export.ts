@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import open from 'open'
 import type { CardData } from './card'
 import { getEnvironmentConfig } from './config'
+import { KANJI_CSV_FILENAME, PHRASES_CSV_FILENAME } from './constants/file'
 import { isClaudeCodeContext } from './environment'
 import { log } from './logger'
 
@@ -31,13 +32,13 @@ export async function exportToCSV(cards: CardData, autoOpen = false): Promise<Ex
   )
 
   // Export phrases
-  const phrasesPath = join(tempDir, 'phrases.csv')
+  const phrasesPath = join(tempDir, PHRASES_CSV_FILENAME)
   const phrasesCSV = convertPhrasesToCSV(cards.phrases)
   writeFileSync(phrasesPath, phrasesCSV, 'utf-8')
   log.debug({ path: phrasesPath }, 'Wrote phrases CSV')
 
   // Export individual kanji
-  const kanjiPath = join(tempDir, 'kanji.csv')
+  const kanjiPath = join(tempDir, KANJI_CSV_FILENAME)
   const kanjiCSV = convertKanjiToCSV(cards.kanji)
   writeFileSync(kanjiPath, kanjiCSV, 'utf-8')
   log.debug({ path: kanjiPath }, 'Wrote kanji CSV')

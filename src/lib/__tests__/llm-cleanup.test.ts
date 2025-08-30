@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
+/** Streaming response chunk prefix pattern */
+const STREAMING_CHUNK_PREFIX = '0:"'
+
+/** Number of characters to skip for streaming chunk prefix */
+const STREAMING_PREFIX_LENGTH = 3
+
 // We need to access the private function for testing, so let's create a test version
 function cleanStreamingResponse(response: string): string {
-  if (typeof response !== 'string' || !response.includes('0:"')) {
+  if (typeof response !== 'string' || !response.includes(STREAMING_CHUNK_PREFIX)) {
     return response
   }
 
@@ -11,10 +17,10 @@ function cleanStreamingResponse(response: string): string {
   let pos = 0
 
   while (pos < response.length) {
-    const start = response.indexOf('0:"', pos)
+    const start = response.indexOf(STREAMING_CHUNK_PREFIX, pos)
     if (start === -1) break
 
-    const contentStart = start + 3 // Skip '0:"'
+    const contentStart = start + STREAMING_PREFIX_LENGTH
 
     // Find the closing quote, but skip over any escaped quotes (\")
     let end = contentStart

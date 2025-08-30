@@ -1,4 +1,6 @@
 import { PrismaClient } from './generated/prisma'
+import { DATABASE_URL } from './lib/constants/env'
+import { TEST_DATABASE_URL } from './lib/constants/file'
 
 /** Shared test database client */
 let testPrisma: PrismaClient | null = null
@@ -9,7 +11,7 @@ export function getTestPrismaClient(): PrismaClient {
     testPrisma = new PrismaClient({
       datasources: {
         db: {
-          url: process.env.DATABASE_URL || 'file:./tmp/test.db',
+          url: process.env[DATABASE_URL] || TEST_DATABASE_URL,
         },
       },
     })

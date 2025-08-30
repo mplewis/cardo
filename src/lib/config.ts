@@ -1,3 +1,18 @@
+import {
+  CLAUDE_CODE,
+  CLAUDE_CODE_ENABLED,
+  DATABASE_URL,
+  LLM_API_KEY,
+  LLM_PROVIDER,
+  LOG_LEVEL,
+  NODE_ENV,
+  OPENAI_API_KEY,
+  PRODUCTION,
+  TEST,
+} from './constants/env'
+import { DEFAULT_PROVIDER } from './constants/llm'
+import { DEFAULT_LEVEL } from './constants/logging'
+
 /** Centralized environment variable configuration */
 
 /** Database configuration */
@@ -33,30 +48,30 @@ export interface AppConfig {
 
 /** Get database configuration from environment */
 export function getDatabaseConfig(): DatabaseConfig {
-  const url = process.env.DATABASE_URL
+  const url = process.env[DATABASE_URL]
   const { isTest } = getEnvironmentConfig()
   return { url, isTest }
 }
 
 /** Get LLM configuration from environment */
 export function getLLMConfig(): LLMConfig {
-  const provider = process.env.LLM_PROVIDER || 'OpenAI'
-  const apiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY
+  const provider = process.env[LLM_PROVIDER] || DEFAULT_PROVIDER
+  const apiKey = process.env[LLM_API_KEY] || process.env[OPENAI_API_KEY]
   return { provider, apiKey }
 }
 
 /** Get logging configuration from environment */
 export function getLoggingConfig(): LoggingConfig {
-  const level = (process.env.LOG_LEVEL as LoggingConfig['level']) || 'info'
+  const level = (process.env[LOG_LEVEL] as LoggingConfig['level']) || DEFAULT_LEVEL
   return { level }
 }
 
 /** Get environment context configuration */
 export function getEnvironmentConfig(): EnvironmentConfig {
-  const nodeEnv = process.env.NODE_ENV || 'production'
+  const nodeEnv = process.env[NODE_ENV] || PRODUCTION
   return {
-    isClaudeCode: process.env.CLAUDECODE === '1',
-    isTest: nodeEnv === 'test',
+    isClaudeCode: process.env[CLAUDE_CODE] === CLAUDE_CODE_ENABLED,
+    isTest: nodeEnv === TEST,
   }
 }
 
